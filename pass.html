@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acceso</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Segoe UI',sans-serif;background:#0c0f14;color:#e8ecf4;min-height:100vh;display:flex;align-items:center;justify-content:center}
+    .box{background:#1a1e27;border:1px solid #2a3040;border-radius:16px;padding:40px;max-width:380px;width:90%;text-align:center}
+    .box h1{font-size:22px;margin-bottom:6px;font-weight:700}
+    .box p{font-size:13px;color:#8892a8;margin-bottom:24px}
+    .box input{width:100%;padding:12px 16px;background:#13161d;border:1px solid #2a3040;border-radius:10px;color:#e8ecf4;font-size:14px;outline:none;margin-bottom:16px}
+    .box input:focus{border-color:#e8952f;box-shadow:0 0 0 3px rgba(232,149,47,.15)}
+    .box button{width:100%;padding:12px;background:#e8952f;color:#000;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer}
+    .box button:hover{background:#f0a844}
+    .err{color:#f87171;font-size:13px;margin-top:10px;display:none}
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>Acceso Restringido</h1>
+    <p>Ingresa la contraseña para continuar</p>
+    <input type="password" id="pw" placeholder="Contraseña" onkeydown="if(event.key==='Enter')entrar()">
+    <button onclick="entrar()">Entrar</button>
+    <p class="err" id="err">Contraseña incorrecta</p>
+  </div>
+  <script>
+    function entrar(){
+      var pw = document.getElementById('pw').value;
+      if(!pw){return}
+      // La cookie dura 30 días
+      document.cookie = 'tp_auth=' + pw + ';path=/;max-age=2592000;SameSite=Strict';
+      // Intentar ir al inicio — si el middleware la rechaza, vuelve aquí
+      window.location.href = '/';
+    }
+    // Si vuelve aquí con ?error=1, mostrar error
+    if(window.location.search.includes('error=1')){
+      document.getElementById('err').style.display='block';
+      document.getElementById('pw').value='';
+    }
+  </script>
+</body>
+</html>
