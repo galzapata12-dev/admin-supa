@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 // CAMBIA ESTO por la contraseña que quieras
-const CLAVE_SECRETA = 'tallerpro2025segura';
+const CLAVE_SECRETA = 'Borderlineadmin1';
 const NOMBRE_COOKIE = 'tp_auth';
 
 export function middleware(request) {
