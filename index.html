@@ -1121,6 +1121,30 @@
           pagos: 'Cobros y Pagos',
           reports: 'Reportes'
         };
+                /* =============================================
+           ARRANQUE DE LA APP (después del login)
+        ============================================= */
+        window.bootApp = function () {
+          S = window._sbClient;
+          document.getElementById('UserEmail').textContent = window._sbUser ? window._sbUser.email : '';
+          document.getElementById('SS').style.display = 'none';
+          document.getElementById('AM').style.display = 'block';
+
+          // Mostrar botón hamburguesa en móvil
+          var mt = document.getElementById('MT');
+          if (window.innerWidth <= 768) mt.style.display = 'inline-flex';
+          window.addEventListener('resize', function () {
+            mt.style.display = window.innerWidth <= 768 ? 'inline-flex' : 'none';
+          });
+
+          rl().then(function () {
+            nav('dashboard');
+            consultarDolar();
+          }).catch(function (err) {
+            console.error('Error cargando datos:', err);
+            toast('Error al cargar datos', 'e');
+          });
+        };
 
         // Click en items del sidebar
         document.querySelectorAll('.ni[data-p]').forEach(function (el) {
