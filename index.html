@@ -367,7 +367,6 @@ try {
 
 var S = null;
 var PA = 'dashboard';
-var HUID = null;
 var TDC = 18;
 
 var D = {
@@ -399,6 +398,15 @@ var TITLES = {
   gastos: ['Gastos', 'Egresos del taller'],
   pagos: ['Cobros y Pagos', 'Registro'],
   reports: ['Reportes', 'Balance mensual']
+};
+
+/* ========== bootApp: era la funcion faltante ========== */
+window.bootApp = function () {
+  S = window._sb;
+  document.getElementById('SS').style.display = 'none';
+  document.getElementById('AM').style.display = 'block';
+  document.getElementById('UserEmail').textContent = window._user ? window._user.email : '';
+  rl().then(function () { nav('dashboard'); });
 };
 
 /* Utilidades */
@@ -495,7 +503,7 @@ function cTag(c) {
 function amo(title, body, footer) {
   Q('#MTt').textContent = title;
   Q('#MBd').innerHTML = body;
-  Q('#MFt').innerHTML = footer || '';
+  Q('#MFt').innerHTML = footer || MB();
   Q('#MO').classList.add('active');
 }
 function cmo() { Q('#MO').classList.remove('active'); }
@@ -503,7 +511,7 @@ window.amo = amo;
 window.cmo = cmo;
 Q('#MO').addEventListener('click', function (e) { if (e.target === Q('#MO')) cmo(); });
 
-/* Delegación: solo delete */
+/* Delegacion: solo delete */
 document.addEventListener('click', function (e) {
   var btn = e.target.closest('[data-action]');
   if (!btn) return;
@@ -512,7 +520,7 @@ document.addEventListener('click', function (e) {
   if (action === 'del') delR(id, btn.getAttribute('data-tb'));
 });
 
-/* Dólar */
+/* Dolar */
 Q('#btnRD').addEventListener('click', consultarDolar);
 Q('#BtnDol').addEventListener('click', function () {
   var v = parseFloat(Q('#dolM').value);
@@ -569,7 +577,7 @@ function kmB(es) {
   return '<span class="badge b-normal">OK</span>';
 }
 
-/* Alertas automáticas */
+/* Alertas automaticas */
 async function genAlertas() {
   if (!S) return;
   var hoy = new Date(); hoy.setHours(0, 0, 0, 0);
@@ -652,7 +660,6 @@ async function rl() {
   updBadges();
 }
 
-/* ===== EL BUG ESTABA AQUÍ: faltaba el ) ===== */
 function delR(id, tb) {
   S.from(tb).delete().eq('id', id).then(function (r) {
     if (r.error) { toast(r.error.message, 'error'); return; }
@@ -662,7 +669,7 @@ function delR(id, tb) {
   });
 }
 
-/* Navegación */
+/* Navegacion */
 QQ('.nav-item[data-p]').forEach(function (el) {
   el.addEventListener('click', function () { nav(this.getAttribute('data-p')); });
 });
@@ -710,6 +717,8 @@ function nav(p) {
   }
   Q('#SB').classList.remove('open');
 }
+/* Exponer nav para uso desde handlers inline (onclick en dashboard) */
+window.nav = nav;
 
 /* ===== DASHBOARD ===== */
 function rDash(c) {
@@ -849,7 +858,7 @@ document.addEventListener('submit', function (e) {
   });
 });
 
-/* ===== VEHÍCULOS ===== */
+/* ===== VEHICULOS ===== */
 function rVh(c) {
   var h = '';
   D.vh.forEach(function (v) {
@@ -871,7 +880,7 @@ function rVh(c) {
       '<td class="text-xs font-semibold">' + (v.kilometraje ? v.kilometraje.toLocaleString() + ' km' : '—') + '</td>' +
       '<td>' + badge + '</td>' +
       '<td><div class="flex gap-1 justify-end">' +
-      '<button class="btn-icon" style="color:#8B5CF6" onclick="HUID=\'' + v.id + '\';nav(\'historial_unidad\')"><i class="fa-solid fa-clock-rotate-left text-xs"></i></button>' +
+      '<button class="btn-icon" style="color:#8B5CF6" onclick="window._setHUID(\'' + v.id + '\')"><i class="fa-solid fa-clock-rotate-left text-xs"></i></button>' +
       '<button class="btn-icon" onclick="amo(fDgF(null,\'' + v.id + '\'))"><i class="fa-solid fa-stethoscope text-xs"></i></button>' +
       '<button class="btn-icon" onclick="amo(fVhF(\'' + v.id + '\'))"><i class="fa-solid fa-pen text-xs"></i></button>' +
       '<button class="btn-icon" data-action="del" data-id="' + v.id + '" data-tb="vehiculos"><i class="fa-solid fa-trash text-xs text-danger"></i></button>' +
@@ -898,6 +907,12 @@ function rVh(c) {
     }).join('') || '<tr><td colspan="6"><div class="empty-state"><p>Sin resultados</p></div></td></tr>';
   });
 }
+
+/* Helper para historial de unidad: evita inline assignment a var de IIFE */
+window._setHUID = function (vid) {
+  window.HUID = vid;
+  nav('historial_unidad');
+};
 
 window.fVhF = function (id) {
   var v = id ? gV(id) : null;
@@ -942,7 +957,7 @@ document.addEventListener('submit', function (e) {
   });
 });
 
-/* ===== DIAGNÓSTICOS ===== */
+/* ===== DIAGNOSTICOS ===== */
 function rDg(c) {
   var h = '';
   D.dg.forEach(function (d) {
@@ -1175,15 +1190,16 @@ document.addEventListener('submit', function (e) {
 
 /* ===== HISTORIAL UNIDAD ===== */
 function rHU(c) {
-  if (!HUID) {
+  var uid = window.HUID;
+  if (!uid) {
     c.innerHTML = '<div class="empty-state"><i class="fa-solid fa-car"></i><p>Selecciona un vehiculo desde Vehiculos</p></div>';
     return;
   }
-  var v = gV(HUID);
+  var v = gV(uid);
   var cl = v ? gC(v.cliente_id) : null;
-  var ds = vDg(HUID);
-  var ks = vKm(HUID);
-  var cos = vCo(HUID);
+  var ds = vDg(uid);
+  var ks = vKm(uid);
+  var cos = vCo(uid);
   var dsH = '';
   ds.forEach(function (d) {
     dsH += '<div class="tli td"><div class="flex justify-between"><div>' +
@@ -1202,7 +1218,7 @@ function rHU(c) {
     '<div class="flex flex-wrap items-center justify-between gap-4 mb-6">' +
     '<button class="btn btn-sm btn-secondary" onclick="nav(\'vehiculos\')"><i class="fa-solid fa-arrow-left"></i> Volver</button>' +
     '<div class="info-bar"><div class="w-10 h-10 rounded-xl bg-accent/15 flex items-center justify-center text-accent font-display font-bold">' + (v ? v.marca.charAt(0) : '') + '</div>' +
-    '<div><p class="text-sm font-bold text-fg">' + (v ? v.marca + ' ' + v.modelo : '—') + '</p><p class="text-xs text-muted">' + (v ? v.placa : '') + ' — ' + (cl ? cl.nombre + ' ' + cl.apellido : '') + (v && v.kilometraje ? ' — ' + v.kilometraje.toLocaleString() + ' km' : '') + '</p></div></div></div></div>' +
+    '<div><p class="text-sm font-bold text-fg">' + (v ? v.marca + ' ' + v.modelo : '—') + '</p><p class="text-xs text-muted">' + (v ? v.placa : '') + ' — ' + (cl ? cl.nombre + ' ' + cl.apellido : '') + (v && v.kilometraje ? ' — ' + v.kilometraje.toLocaleString() + ' km' : '') + '</p></div></div></div>' +
     '<div class="grid grid-cols-3 gap-4 mb-6">' +
     '<div class="stat-card text-center"><p class="text-2xl font-extrabold font-display text-info">' + ds.length + '</p><p class="text-[11px] text-muted">Diagnosticos</p></div>' +
     '<div class="stat-card text-center"><p class="text-2xl font-extrabold font-display text-accent">' + ks.length + '</p><p class="text-[11px] text-muted">Mantenimientos</p></div>' +
@@ -1402,216 +1418,3 @@ window.fInvF = function (id) {
     '<div class="grid grid-cols-3 gap-4">' +
     GF('number', 'Cantidad', i ? i.cantidad : 0, 'cantidad') +
     GF('number', 'Stock Min', i ? i.stock_min : 2, 'stock_min') +
-    GF('number', 'P. Unitario', i ? i.precio_unitario : 0, 'precio') +
-    '</div>' +
-    GF('text', 'Proveedor', i ? i.proveedor : '', 'proveedor') +
-    GST('Notas', i ? i.notas : '', 'notas') +
-    '<input type="hidden" name="_edit_id" value="' + (id || '') + '">' +
-    '</form>';
-};
-
-window.fAjInv = function (id) {
-  var i = D.inv.find(function (x) { return x.id === id; });
-  if (!i) return '<p>No encontrado</p>';
-  return '<form id="FrAj"><p class="text-sm text-muted mb-4">Stock actual: <span class="text-fg font-bold">' + i.cantidad + '</span> (min: ' + i.stock_min + ')</p>' +
-    '<input type="hidden" name="inv_id" value="' + id + '">' +
-    GF('number', 'Cantidad a agregar', '1', 'cant') +
-    '</form>';
-};
-
-document.addEventListener('submit', function (e) {
-  if (e.target.id === 'FrInv') {
-    e.preventDefault();
-    var fd = new FormData(e.target);
-    var id = fd.get('_edit_id');
-    var d = { codigo: fd.get('codigo'), nombre: fd.get('nombre'), categoria: fd.get('categoria'), cantidad: parseInt(fd.get('cantidad')) || 0, stock_min: parseInt(fd.get('stock_min')) || 2, precio_unitario: parseFloat(fd.get('precio')) || 0, proveedor: fd.get('proveedor'), notas: fd.get('notas') };
-    var p = id ? S.from('inventario').update(d).eq('id', id) : S.from('inventario').insert([d]);
-    p.then(function (r) { if (r.error) { toast(r.error.message, 'error'); return; } toast(id ? 'Actualizado' : 'Registrado'); cmo(); rl().then(function () { nav('inventario'); }); });
-  }
-  if (e.target.id === 'FrAj') {
-    e.preventDefault();
-    var fd = new FormData(e.target);
-    var id = fd.get('inv_id');
-    var cant = parseInt(fd.get('cant')) || 0;
-    var item = D.inv.find(function (x) { return x.id === id; });
-    if (!item) return;
-    S.from('inventario').update({ cantidad: item.cantidad + cant }).eq('id', id).then(function (r) {
-      if (r.error) { toast(r.error.message, 'error'); return; }
-      toast('Stock: ' + (item.cantidad + cant));
-      cmo();
-      rl().then(function () { nav('inventario'); });
-    });
-  }
-});
-
-/* ===== GASTOS ===== */
-function rGas(c) {
-  var now = new Date();
-  var mA = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
-  var gM = D.gas.filter(function (e) { return e.fecha && e.fecha.startsWith(mA); }).reduce(function (s, e) { return s + (parseFloat(e.monto) || 0); }, 0);
-  var totalG = D.gas.reduce(function (s, e) { return s + (parseFloat(e.monto) || 0); }, 0);
-  var porCat = {};
-  D.gas.forEach(function (e) { var cat = e.categoria || 'Otros'; porCat[cat] = (porCat[cat] || 0) + (parseFloat(e.monto) || 0); });
-  var distH = '';
-  Object.keys(GC_MAP).forEach(function (cat) {
-    var m = porCat[cat] || 0;
-    if (m > 0) {
-      var p = totalG ? (m / totalG * 100) : 0;
-      var co = GC_MAP[cat];
-      distH += '<div class="p-3 rounded-xl border border-border bg-surface/30"><div class="flex items-center gap-2 mb-1"><span class="w-2.5 h-2.5 rounded-full" style="background:' + co + '"></span><span class="text-[10px] text-muted uppercase tracking-wider font-semibold">' + cat + '</span></div><p class="text-sm font-bold font-display text-fg">' + fM(m) + '</p><p class="text-[10px] text-muted">' + p.toFixed(1) + '%</p></div></div>';
-    }
-  });
-  var h = '';
-  D.gas.forEach(function (e) {
-    var co = GC_MAP[e.categoria] || '#6E7489';
-    var isU = e.metodo === 'efectivo_usd';
-    h += '<tr><td class="text-xs text-muted">' + fF(e.fecha) + '</td><td><span class="badge" style="background:' + co + '18;color:' + co + '">' + (e.categoria || 'Otros') + '</span></td><td class="text-sm text-fg">' + (e.concepto || '—') + '</td><td>' + mB(e.metodo) + '</td><td style="text-align:right" class="font-bold text-danger">' + fM(e.monto) + (isU ? '<br><span class="text-[10px] text-usd font-normal">($' + (e.monto / TDC).toFixed(2) + ')</span>' : '') + '</td><td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="amo(fGasF(\'' + e.id + '\'))"><i class="fa-solid fa-pen text-xs"></i></button><button class="btn-icon" data-action="del" data-id="' + e.id + '" data-tb="gastos"><i class="fa-solid fa-trash text-xs text-danger"></i></button></div></td></tr>';
-  });
-  c.innerHTML = '<div class="fade-in">' +
-    '<div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-6">' +
-    sc('Total Gastos', fM(totalG), D.gas.length + ' egresos', 'fa-receipt', 'danger') +
-    sc('Gastos Mes', fM(gM), '', 'fa-calendar', 'warning') +
-    '</div>' +
-    (distH ? '<div class="bg-card border border-border rounded-2xl p-5 mb-6"><h3 class="text-sm font-bold font-display text-fg mb-3">Por Categoria</h3><div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">' + distH + '</div></div>' : '') +
-    '<div class="flex flex-wrap items-center justify-between gap-4 mb-4"><div class="search-box"><i class="fa-solid fa-magnifying-glass"></i><input type="text" class="form-input w-64" placeholder="Buscar..." id="sGas"></div><button class="btn btn-primary" onclick="amo(fGasF())"><i class="fa-solid fa-plus"></i> Nuevo Gasto</button></div>' +
-    '<div class="bg-card border border-border rounded-2xl overflow-hidden"><div class="overflow-x-auto"><table class="data-table"><thead><tr><th>Fecha</th><th>Categoria</th><th>Concepto</th><th>Metodo</th><th style="text-align:right">Monto</th><th>Acciones</th></tr></thead><tbody>' +
-    (h || '<tr><td colspan="6"><div class="empty-state"><i class="fa-solid fa-receipt"></i><p>Sin gastos</p></div></td></tr>') +
-    '</tbody></table></div></div></div></div>';
-  Q('#sGas').addEventListener('input', function () {
-    var q = this.value.toLowerCase();
-    c.querySelector('tbody').innerHTML = D.gas.filter(function (e) {
-      return ((e.concepto || '') + ' ' + (e.proveedor || '')).toLowerCase().indexOf(q) >= 0;
-    }).map(function (e) {
-      var isU = e.metodo === 'efectivo_usd';
-      return '<tr><td class="text-xs text-muted">' + fF(e.fecha) + '</td><td class="text-sm text-fg">' + (e.concepto || '') + '</td><td style="text-align:right" class="font-bold text-danger">' + fM(e.monto) + (isU ? ' <span class="text-[10px] text-usd font-normal">($' + (e.monto / TDC).toFixed(2) + ')</span>' : '') + '</td><td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="amo(fGasF(\'' + e.id + '\'))"><i class="fa-solid fa-pen text-xs"></i></button></div></td></tr>';
-    }).join('') || '<tr><td colspan="6"><div class="empty-state"><p>Sin resultados</p></div></td></tr>';
-  });
-}
-
-window.fGasF = function (id) {
-  var e = id ? D.gas.find(function (x) { return x.id === id; }) : null;
-  var catOpts = Object.keys(GC_MAP).map(function (c) { return '<option value="' + c + '"' + (e && e.categoria === c ? ' selected' : '') + '>' + c + '</option>'; }).join('');
-  var metOpts = Object.keys(MT_MAP).map(function (m) { return '<option value="' + m + '"' + (e && e.metodo === m ? ' selected' : '') + '>' + MT_MAP[m] + '</option>'; }).join('');
-  return '<form id="FrGas"><div class="grid grid-cols-2 gap-4">' +
-    GF('date', 'Fecha *', e ? e.fecha || today() : today(), 'fecha') +
-    '<div class="form-group"><label class="form-label">Categoria</label><select class="form-input" name="categoria">' + catOpts + '</select></div>' +
-    GF('number', 'Monto *', e ? e.monto : '', 'monto') +
-    '<div class="form-group"><label class="form-label">Metodo</label><select class="form-input" name="metodo">' + metOpts + '</select></div>' +
-    GF('text', 'Proveedor', e ? e.proveedor : '', 'proveedor') +
-    '</div>' +
-    GF('text', 'Concepto', e ? e.concepto : '', 'concepto') +
-    GST('Notas', e ? e.notas : '', 'notas') +
-    '<div class="p-3 rounded-xl bg-surface border border-border"><p class="text-[11px] text-muted"><i class="fa-solid fa-circle-info mr-1"></i> TC: <span class="text-fg font-bold">$1 = ' + TDC.toFixed(2) + ' MXN</span></p></div>' +
-    '<input type="hidden" name="_edit_id" value="' + (id || '') + '">' +
-    '</form>';
-};
-
-document.addEventListener('submit', function (e) {
-  if (e.target.id !== 'FrGas') return;
-  e.preventDefault();
-  var fd = new FormData(e.target);
-  var id = fd.get('_edit_id');
-  var d = { fecha: fd.get('fecha'), categoria: fd.get('categoria') || 'Otros', concepto: fd.get('concepto'), monto: parseFloat(fd.get('monto')) || 0, proveedor: fd.get('proveedor') || '', metodo: fd.get('metodo') || 'efectivo', notas: fd.get('notas') || '' };
-  if (d.metodo === 'efectivo_usd') {
-    var v = d.monto;
-    d.monto = Math.round(v * TDC * 100) / 100;
-    d.concepto = (fd.get('concepto') || '') + ' ($' + v + ' USD)';
-  }
-  var p = id ? S.from('gastos').update(d).eq('id', id) : S.from('gastos').insert([d]);
-  p.then(function (r) { if (r.error) { toast(r.error.message, 'error'); return; } toast(id ? 'Actualizado' : 'Registrado'); cmo(); rl().then(function () { nav('gastos'); }); });
-});
-
-/* ===== COBROS Y PAGOS ===== */
-function rPag(c) {
-  var now = new Date();
-  var mA = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
-  var tp = D.pag.filter(function (x) { return x.fecha && x.fecha.startsWith(mA); }).reduce(function (s, x) { return s + (parseFloat(x.monto) || 0); }, 0);
-  var tpT = D.pag.reduce(function (s, x) { return s + (parseFloat(x.monto) || 0); }, 0);
-  var h = '';
-  D.pag.slice().sort(function (a, b) { return (b.fecha || '').localeCompare(a.fecha || ''); }).forEach(function (p) {
-    var d = p.diagnostico_id ? gD(p.diagnostico_id) : null;
-    var v = d ? gV(d.vehiculo_id) : null;
-    var cl = d ? (v ? gC(v.cliente_id) : null) : null;
-    var isU = p.metodo === 'efectivo_usd';
-    h += '<tr><td class="text-xs text-muted">' + fF(p.fecha) + '</td><td class="text-xs font-semibold">' + (v ? v.marca + ' ' + v.modelo + ' (' + v.placa + ')' : '—') + '</td><td class="text-xs text-muted">' + (cl ? cl.nombre + ' ' + cl.apellido : 'Pago directo') + '</td><td>' + mB(p.metodo) + '</td><td style="text-align:right" class="font-bold text-accent">' + fM(p.monto) + (isU ? '<br><span class="text-[10px] text-usd font-normal">($' + (p.monto / TDC).toFixed(2) + ')</span>' : '') + '</td><td style="text-align:right"><button class="btn-icon" data-action="del" data-id="' + p.id + '" data-tb="pagos"><i class="fa-solid fa-trash text-xs text-danger"></i></button></td></tr></tr>';
-  });
-  c.innerHTML = '<div class="fade-in">' +
-    '<div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-6">' +
-    sc('Cobrado Mes', fM(tp), '', 'fa-arrow-trend-up', 'accent') +
-    sc('Total Acumulado', fM(tpT), '', 'fa-money-bill-wave', 'info') +
-    '</div><div class="mb-6"><button class="btn btn-primary" onclick="amo(fPagF(null))"><i class="fa-solid fa-plus"></i> Registrar Pago</button></div>' +
-    '<div class="bg-card border border-border rounded-2xl overflow-hidden"><div class="overflow-x-auto"><table class="data-table"><thead><tr><th>Fecha</th><th>Orden</th><th>Cliente</th><th>Metodo</th><th style="text-align:right">Monto</th><th>Acc.</th></tr></thead><tbody>' +
-    (h || '<tr><td colspan="6"><div class="empty-state"><i class="fa-solid fa-coins"></i><p>Sin pagos</p></div></td></tr>') +
-    '</tbody></table></div></div></div></div>';
-}
-
-window.fPagF = function (did) {
-  if (!did) return '<div class="text-center" style="padding:20px"><p style="color:#EF4444;font-size:13px">Selecciona una orden desde Diagnosticos</p><button class="btn btn-secondary" style="margin-top:10px" onclick="cmo()">Cerrar</button></div>';
-  var d = gD(did);
-  if (!d) return '<div style="padding:20px"><p>No encontrada</p></div>';
-  var v = gV(d.vehiculo_id);
-  var cl = v ? gC(v.cliente_id) : null;
-  var pags = vPag(did);
-  var tp = 0;
-  pags.forEach(function (p) { tp += parseFloat(p.monto) || 0; });
-  var saldo = (parseFloat(d.costo) || 0) - tp;
-  var metOpts = Object.keys(MT_MAP).map(function (m) { return '<option value="' + m + '">' + MT_MAP[m] + '</option>'; }).join('');
-  return '<form id="FrPag">' +
-    '<div class="p-4 rounded-xl bg-surface mb-4"><p class="text-sm font-bold text-fg">' + (v ? v.marca + ' ' + v.modelo + ' (' + v.placa + ')' : '—') + '</p>' +
-    '<p class="text-xs text-muted">' + (cl ? cl.nombre + ' ' + cl.apellido : '') + '</p>' +
-    '<p class="mt-2">Costo: <span class="text-accent font-bold">' + fM(d.costo) + '</span> | Pagado: <span class="text-accent font-bold">' + fM(tp) + '</span> | Saldo: <span class="font-bold ' + (saldo > 0 ? 'text-danger' : 'text-accent') + '">' + fM(saldo) + '</span></p></div>' +
-    '<input type="hidden" name="did" value="' + did + '">' +
-    '<div class="grid grid-cols-2 gap-4">' +
-    GF('number', 'Monto *', '', 'monto') +
-    GF('date', 'Fecha', today(), 'fecha') +
-    '<div class="form-group"><label class="form-label">Metodo</label><select class="form-input" name="metodo">' + metOpts + '</select></div>' +
-    GF('text', 'Referencia', '', 'referencia') +
-    '</div><div class="p-3 rounded-xl bg-surface border border-border"><p class="text-[11px] text-muted"><i class="fa-solid fa-circle-info mr-1"></i> TC: <span class="text-fg font-bold">$1 = ' + TDC.toFixed(2) + '</span></p></div>' +
-    '</div><input type="hidden" name="_edit_id" value="">' +
-    '</form>';
-};
-
-document.addEventListener('submit', function (e) {
-  if (e.target.id !== 'FrPag') return;
-  e.preventDefault();
-  var fd = new FormData(e.target);
-  var did = fd.get('did');
-  var mI = parseFloat(fd.get('monto')) || 0;
-  if (!did) { toast('Selecciona orden', 'error'); return; }
-  if (mI <= 0) { toast('Monto invalido', 'error'); return; }
-  var me = fd.get('metodo');
-  var mP = me === 'efectivo_usd' ? Math.round(mI * TDC * 100) / 100 : mI;
-  d = { diagnostico_id: did, monto: mP, fecha: fd.get('fecha') || today(), metodo: me, referencia: fd.get('referencia') || '' };
-  S.from('pagos').insert([d]).then(function (r) {
-    if (r.error) { toast(r.error.message, 'error'); return; }
-    toast('Pago registrado' + (me === 'efectivo_usd' ? ' ($' + mI + ' USD)' : ''));
-    cmo();
-    rl().then(function () { nav('pagos'); });
-  });
-});
-
-/* ===== REPORTES ===== */
-function rRep(c) {
-  var now = new Date();
-  var mA = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
-  var mP = D.pag.filter(function (x) { return x.fecha && x.fecha.startsWith(mA); }).reduce(function (s, x) { return s + (parseFloat(x.monto) || 0); }, 0);
-  var mG = D.gas.filter(function (x) { return x.fecha && x.fecha.startsWith(mA); }).reduce(function (s, x) { return s + (parseFloat(x.monto) || 0); }, 0);
-  var bal = mP - mG;
-  var margen = ing > 0 ? ((bal / ing) * 100) : '0';
-  var bc = bal >= 0 ? 'text-accent' : 'text-danger';
-  var bg = bal >= 0 ? 'bg-accent/10' : 'bg-danger/10';
-  var gc = bal >= 0 ? '#10B981' : '#EF4444';
-
-  var mecs = {};
-  D.dg.forEach(function (d) { if (d.mecanico) mecs[d.mecanico] = (mecs[d.mecanico] || 0) + 1; });
-  var mecH = '';
-  Object.keys(mecs).sort(function (a, b) { return mecs[b] - mecs[a]; }).forEach(function (m) {
-    mecH += '<div class="flex justify-between text-xs py-1"><span class="text-muted"><i class="fa-solid fa-wrench mr-1 text-accent"></i>' + m + '</span><span class="text-fg font-bold">' + mecs[m] + ' ordenes</span></div>';
-  });
-
-  var pm = {};
-  mP.forEach(function (p) { pm[p.metodo] = (pm[p.metodo] || 0) + (parseFloat(p.monto) || 0); });
-
-  c.innerHTML = '<div class="fade-in">' +
-    '<div class="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-6">' +
-    '<div class="stat-card"><div style="position:absolute;top:0;right:0;width:120px;height:120px;border-radius:50%;filter:blur(50px);opacity:.12;background:#10B981"></div><div class="mb-3"><span class="text-xs text-muted font-semibold uppercase tracking-wider font-display">Ingresos Mes</span></div><p class="text-2xl font
