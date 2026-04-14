@@ -704,20 +704,6 @@ function nav(p) {
       case 'pagos': rPag(c); break;
       case 'reports': rRep(c); break;
     }
-    /* ===== BOOT (debe ser global) ===== */
-window.bootApp = function () {
-  document.getElementById('SS').style.display = 'none';
-  document.getElementById('AM').style.display = 'block';
-  document.getElementById('UserEmail').textContent = window._user ? window._user.email : '';
-  S = window._sb;
-  rl().then(function () {
-    nav('dashboard');
-    consultarDolar();
-  }).catch(function (ex) {
-    console.error('Error inicializando:', ex);
-    toast('Error cargando datos', 'error');
-  });
-};
   } catch (ex) {
     console.error('Error render ' + p, ex);
     c.innerHTML = '<div class="empty-state"><i class="fa-solid fa-bug"></i><p>Error cargando seccion</p></div>';
