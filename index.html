@@ -367,6 +367,8 @@ try {
 
 var S = null;
 var PA = 'dashboard';
+/* FIX #3: window.HUID para que sea accesible desde onclick inline */
+window.HUID = null;
 var TDC = 18;
 
 var D = {
@@ -398,15 +400,6 @@ var TITLES = {
   gastos: ['Gastos', 'Egresos del taller'],
   pagos: ['Cobros y Pagos', 'Registro'],
   reports: ['Reportes', 'Balance mensual']
-};
-
-/* ========== bootApp: era la funcion faltante ========== */
-window.bootApp = function () {
-  S = window._sb;
-  document.getElementById('SS').style.display = 'none';
-  document.getElementById('AM').style.display = 'block';
-  document.getElementById('UserEmail').textContent = window._user ? window._user.email : '';
-  rl().then(function () { nav('dashboard'); });
 };
 
 /* Utilidades */
@@ -503,7 +496,7 @@ function cTag(c) {
 function amo(title, body, footer) {
   Q('#MTt').textContent = title;
   Q('#MBd').innerHTML = body;
-  Q('#MFt').innerHTML = footer || MB();
+  Q('#MFt').innerHTML = footer || '';
   Q('#MO').classList.add('active');
 }
 function cmo() { Q('#MO').classList.remove('active'); }
@@ -511,7 +504,7 @@ window.amo = amo;
 window.cmo = cmo;
 Q('#MO').addEventListener('click', function (e) { if (e.target === Q('#MO')) cmo(); });
 
-/* Delegacion: solo delete */
+/* Delegación: solo delete */
 document.addEventListener('click', function (e) {
   var btn = e.target.closest('[data-action]');
   if (!btn) return;
@@ -520,7 +513,7 @@ document.addEventListener('click', function (e) {
   if (action === 'del') delR(id, btn.getAttribute('data-tb'));
 });
 
-/* Dolar */
+/* Dólar */
 Q('#btnRD').addEventListener('click', consultarDolar);
 Q('#BtnDol').addEventListener('click', function () {
   var v = parseFloat(Q('#dolM').value);
@@ -577,7 +570,7 @@ function kmB(es) {
   return '<span class="badge b-normal">OK</span>';
 }
 
-/* Alertas automaticas */
+/* Alertas automáticas */
 async function genAlertas() {
   if (!S) return;
   var hoy = new Date(); hoy.setHours(0, 0, 0, 0);
@@ -669,7 +662,7 @@ function delR(id, tb) {
   });
 }
 
-/* Navegacion */
+/* Navegación */
 QQ('.nav-item[data-p]').forEach(function (el) {
   el.addEventListener('click', function () { nav(this.getAttribute('data-p')); });
 });
@@ -717,8 +710,6 @@ function nav(p) {
   }
   Q('#SB').classList.remove('open');
 }
-/* Exponer nav para uso desde handlers inline (onclick en dashboard) */
-window.nav = nav;
 
 /* ===== DASHBOARD ===== */
 function rDash(c) {
@@ -858,7 +849,7 @@ document.addEventListener('submit', function (e) {
   });
 });
 
-/* ===== VEHICULOS ===== */
+/* ===== VEHÍCULOS ===== */
 function rVh(c) {
   var h = '';
   D.vh.forEach(function (v) {
@@ -880,7 +871,8 @@ function rVh(c) {
       '<td class="text-xs font-semibold">' + (v.kilometraje ? v.kilometraje.toLocaleString() + ' km' : '—') + '</td>' +
       '<td>' + badge + '</td>' +
       '<td><div class="flex gap-1 justify-end">' +
-      '<button class="btn-icon" style="color:#8B5CF6" onclick="window._setHUID(\'' + v.id + '\')"><i class="fa-solid fa-clock-rotate-left text-xs"></i></button>' +
+      /* FIX #3: usar window.HUID en vez de HUID */
+      '<button class="btn-icon" style="color:#8B5CF6" onclick="window.HUID=\'' + v.id + '\';nav(\'historial_unidad\')"><i class="fa-solid fa-clock-rotate-left text-xs"></i></button>' +
       '<button class="btn-icon" onclick="amo(fDgF(null,\'' + v.id + '\'))"><i class="fa-solid fa-stethoscope text-xs"></i></button>' +
       '<button class="btn-icon" onclick="amo(fVhF(\'' + v.id + '\'))"><i class="fa-solid fa-pen text-xs"></i></button>' +
       '<button class="btn-icon" data-action="del" data-id="' + v.id + '" data-tb="vehiculos"><i class="fa-solid fa-trash text-xs text-danger"></i></button>' +
@@ -907,12 +899,6 @@ function rVh(c) {
     }).join('') || '<tr><td colspan="6"><div class="empty-state"><p>Sin resultados</p></div></td></tr>';
   });
 }
-
-/* Helper para historial de unidad: evita inline assignment a var de IIFE */
-window._setHUID = function (vid) {
-  window.HUID = vid;
-  nav('historial_unidad');
-};
 
 window.fVhF = function (id) {
   var v = id ? gV(id) : null;
@@ -957,7 +943,7 @@ document.addEventListener('submit', function (e) {
   });
 });
 
-/* ===== DIAGNOSTICOS ===== */
+/* ===== DIAGNÓSTICOS ===== */
 function rDg(c) {
   var h = '';
   D.dg.forEach(function (d) {
@@ -1190,16 +1176,16 @@ document.addEventListener('submit', function (e) {
 
 /* ===== HISTORIAL UNIDAD ===== */
 function rHU(c) {
-  var uid = window.HUID;
-  if (!uid) {
+  /* FIX #3: leer window.HUID */
+  if (!window.HUID) {
     c.innerHTML = '<div class="empty-state"><i class="fa-solid fa-car"></i><p>Selecciona un vehiculo desde Vehiculos</p></div>';
     return;
   }
-  var v = gV(uid);
+  var v = gV(window.HUID);
   var cl = v ? gC(v.cliente_id) : null;
-  var ds = vDg(uid);
-  var ks = vKm(uid);
-  var cos = vCo(uid);
+  var ds = vDg(window.HUID);
+  var ks = vKm(window.HUID);
+  var cos = vCo(window.HUID);
   var dsH = '';
   ds.forEach(function (d) {
     dsH += '<div class="tli td"><div class="flex justify-between"><div>' +
@@ -1418,3 +1404,83 @@ window.fInvF = function (id) {
     '<div class="grid grid-cols-3 gap-4">' +
     GF('number', 'Cantidad', i ? i.cantidad : 0, 'cantidad') +
     GF('number', 'Stock Min', i ? i.stock_min : 2, 'stock_min') +
+    GF('number', 'P. Unitario', i ? i.precio_unitario : 0, 'precio') +
+    '</div>' +
+    GF('text', 'Proveedor', i ? i.proveedor : '', 'proveedor') +
+    GST('Notas', i ? i.notas : '', 'notas') +
+    '<input type="hidden" name="_edit_id" value="' + (id || '') + '">' +
+    '</form>';
+};
+
+window.fAjInv = function (id) {
+  var i = D.inv.find(function (x) { return x.id === id; });
+  if (!i) return '<p>No encontrado</p>';
+  return '<form id="FrAj"><p class="text-sm text-muted mb-4">Stock actual: <span class="text-fg font-bold">' + i.cantidad + '</span> (min: ' + i.stock_min + ')</p>' +
+    '<input type="hidden" name="inv_id" value="' + id + '">' +
+    GF('number', 'Cantidad a agregar', '1', 'cant') +
+    '</form>';
+};
+
+document.addEventListener('submit', function (e) {
+  if (e.target.id === 'FrInv') {
+    e.preventDefault();
+    var fd = new FormData(e.target);
+    var id = fd.get('_edit_id');
+    var d = { codigo: fd.get('codigo'), nombre: fd.get('nombre'), categoria: fd.get('categoria'), cantidad: parseInt(fd.get('cantidad')) || 0, stock_min: parseInt(fd.get('stock_min')) || 2, precio_unitario: parseFloat(fd.get('precio')) || 0, proveedor: fd.get('proveedor'), notas: fd.get('notas') };
+    var p = id ? S.from('inventario').update(d).eq('id', id) : S.from('inventario').insert([d]);
+    p.then(function (r) { if (r.error) { toast(r.error.message, 'error'); return; } toast(id ? 'Actualizado' : 'Registrado'); cmo(); rl().then(function () { nav('inventario'); }); });
+  }
+  if (e.target.id === 'FrAj') {
+    e.preventDefault();
+    var fd = new FormData(e.target);
+    var id = fd.get('inv_id');
+    var cant = parseInt(fd.get('cant')) || 0;
+    var item = D.inv.find(function (x) { return x.id === id; });
+    if (!item) return;
+    S.from('inventario').update({ cantidad: item.cantidad + cant }).eq('id', id).then(function (r) {
+      if (r.error) { toast(r.error.message, 'error'); return; }
+      toast('Stock: ' + (item.cantidad + cant));
+      cmo();
+      rl().then(function () { nav('inventario'); });
+    });
+  }
+});
+
+/* ===== GASTOS ===== */
+function rGas(c) {
+  var now = new Date();
+  var mA = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+  var gM = D.gas.filter(function (e) { return e.fecha && e.fecha.startsWith(mA); }).reduce(function (s, e) { return s + (parseFloat(e.monto) || 0); }, 0);
+  var totalG = D.gas.reduce(function (s, e) { return s + (parseFloat(e.monto) || 0); }, 0);
+  var porCat = {};
+  D.gas.forEach(function (e) { var cat = e.categoria || 'Otros'; porCat[cat] = (porCat[cat] || 0) + (parseFloat(e.monto) || 0); });
+  var distH = '';
+  Object.keys(GC_MAP).forEach(function (cat) {
+    var m = porCat[cat] || 0;
+    if (m > 0) {
+      var p = totalG ? (m / totalG * 100) : 0;
+      var co = GC_MAP[cat];
+      distH += '<div class="p-3 rounded-xl border border-border bg-surface/30"><div class="flex items-center gap-2 mb-1"><span class="w-2.5 h-2.5 rounded-full" style="background:' + co + '"></span><span class="text-[10px] text-muted uppercase tracking-wider font-semibold">' + cat + '</span></div><p class="text-sm font-bold font-display text-fg">' + fM(m) + '</p><p class="text-[10px] text-muted">' + p.toFixed(1) + '%</p></div>';
+    }
+  });
+  var h = '';
+  D.gas.forEach(function (e) {
+    var co = GC_MAP[e.categoria] || '#6E7489';
+    var isU = e.metodo === 'efectivo_usd';
+    h += '<tr><td class="text-xs text-muted">' + fF(e.fecha) + '</td><td><span class="badge" style="background:' + co + '18;color:' + co + '">' + (e.categoria || 'Otros') + '</span></td><td class="text-sm text-fg">' + (e.concepto || '—') + '</td><td>' + mB(e.metodo) + '</td><td style="text-align:right" class="font-bold text-danger">' + fM(e.monto) + (isU ? '<br><span class="text-[10px] text-usd font-normal">($' + (e.monto / TDC).toFixed(2) + ')</span>' : '') + '</td><td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="amo(fGasF(\'' + e.id + '\'))"><i class="fa-solid fa-pen text-xs"></i></button><button class="btn-icon" data-action="del" data-id="' + e.id + '" data-tb="gastos"><i class="fa-solid fa-trash text-xs text-danger"></i></button></div></td></tr>';
+  });
+  /* FIX #5: corregido — 3 cierres de div en vez de 4 */
+  c.innerHTML = '<div class="fade-in">' +
+    '<div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-6">' +
+    sc('Total Gastos', fM(totalG), D.gas.length + ' egresos', 'fa-receipt', 'danger') +
+    sc('Gastos Mes', fM(gM), '', 'fa-calendar', 'warning') +
+    '</div>' +
+    (distH ? '<div class="bg-card border border-border rounded-2xl p-5 mb-6"><h3 class="text-sm font-bold font-display text-fg mb-3">Por Categoria</h3><div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">' + distH + '</div></div>' : '') +
+    '<div class="flex flex-wrap items-center justify-between gap-4 mb-4"><div class="search-box"><i class="fa-solid fa-magnifying-glass"></i><input type="text" class="form-input w-64" placeholder="Buscar..." id="sGas"></div><button class="btn btn-primary" onclick="amo(fGasF())"><i class="fa-solid fa-plus"></i> Nuevo Gasto</button></div>' +
+    '<div class="bg-card border border-border rounded-2xl overflow-hidden"><div class="overflow-x-auto"><table class="data-table"><thead><tr><th>Fecha</th><th>Categoria</th><th>Concepto</th><th>Metodo</th><th style="text-align:right">Monto</th><th>Acciones</th></tr></thead><tbody>' +
+    (h || '<tr><td colspan="6"><div class="empty-state"><i class="fa-solid fa-receipt"></i><p>Sin gastos</p></div></td></tr>') +
+    '</tbody></table></div></div></div>';
+  Q('#sGas').addEventListener('input', function () {
+    var q = this.value.toLowerCase();
+    c.querySelector('tbody').innerHTML = D.gas.filter(function (e) {
+      return ((e.concepto || '') + ' ' + (e.proveedor ||
