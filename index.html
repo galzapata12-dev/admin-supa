@@ -1497,4 +1497,195 @@ function rGas(c) {
   Q('#sGas').addEventListener('input', function () {
     var q = this.value.toLowerCase();
     c.querySelector('tbody').innerHTML = D.gas.filter(function (e) {
-      return ((e.concepto || '') + ' ' + (e.proveedor ||
+      return ((e.concepto || '') + ' ' + (e.proveedor || '')).toLowerCase().indexOf(q) >= 0;
+    }).map(function (e) {
+      var isU = e.metodo === 'efectivo_usd';
+      return '<tr><td class="text-xs text-muted">' + fF(e.fecha) + '</td><td class="text-sm text-fg">' + (e.concepto || '') + '</td><td style="text-align:right" class="font-bold text-danger">' + fM(e.monto) + (isU ? ' <span class="text-[10px] text-usd font-normal">($' + (e.monto / TDC).toFixed(2) + ')</span>' : '') + '</td><td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="amo(fGasF(\'' + e.id + '\'))"><i class="fa-solid fa-pen text-xs"></i></button></div></td></tr>';
+    }).join('') || '<tr><td colspan="6"><div class="empty-state"><p>Sin resultados</p></div></td></tr>';
+  });
+}
+
+window.fGasF = function (id) {
+  var e = id ? D.gas.find(function (x) { return x.id === id; }) : null;
+  var catOpts = Object.keys(GC_MAP).map(function (cat) { return '<option value="' + cat + '"' + (e && e.categoria === cat ? ' selected' : '') + '>' + cat + '</option>'; }).join('');
+  var metOpts = Object.keys(MT_MAP).map(function (m) { return '<option value="' + m + '"' + (e && e.metodo === m ? ' selected' : '') + '>' + MT_MAP[m] + '</option>'; }).join('');
+  return '<form id="FrGas"><div class="grid grid-cols-2 gap-4">' +
+    GF('date', 'Fecha *', e ? e.fecha || today() : today(), 'fecha') +
+    '<div class="form-group"><label class="form-label">Categoria</label><select class="form-input" name="categoria">' + catOpts + '</select></div>' +
+    GF('number', 'Monto *', e ? e.monto : '', 'monto') +
+    '<div class="form-group"><label class="form-label">Metodo</label><select class="form-input" name="metodo">' + metOpts + '</select></div>' +
+    GF('text', 'Proveedor', e ? e.proveedor : '', 'proveedor') +
+    '</div>' +
+    GF('text', 'Concepto', e ? e.concepto : '', 'concepto') +
+    GST('Notas', e ? e.notas : '', 'notas') +
+    '<div class="p-3 rounded-xl bg-surface border border-border"><p class="text-[11px] text-muted"><i class="fa-solid fa-circle-info mr-1"></i> TC: <span class="text-fg font-bold">$1 = ' + TDC.toFixed(2) + ' MXN</span></p></div>' +
+    '<input type="hidden" name="_edit_id" value="' + (id || '') + '">' +
+    '</form>';
+};
+
+document.addEventListener('submit', function (e) {
+  if (e.target.id !== 'FrGas') return;
+  e.preventDefault();
+  var fd = new FormData(e.target);
+  var id = fd.get('_edit_id');
+  var d = { fecha: fd.get('fecha'), categoria: fd.get('categoria') || 'Otros', concepto: fd.get('concepto'), monto: parseFloat(fd.get('monto')) || 0, proveedor: fd.get('proveedor') || '', metodo: fd.get('metodo') || 'efectivo', notas: fd.get('notas') || '' };
+  if (d.metodo === 'efectivo_usd') {
+    var vUsd = d.monto;
+    d.monto = Math.round(vUsd * TDC * 100) / 100;
+    d.concepto = (fd.get('concepto') || '') + ' ($' + vUsd + ' USD)';
+  }
+  var p = id ? S.from('gastos').update(d).eq('id', id) : S.from('gastos').insert([d]);
+  p.then(function (r) { if (r.error) { toast(r.error.message, 'error'); return; } toast(id ? 'Actualizado' : 'Registrado'); cmo(); rl().then(function () { nav('gastos'); }); });
+});
+
+/* ===== COBROS Y PAGOS ===== */
+function rPag(c) {
+  var now = new Date();
+  var mA = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+  var tp = D.pag.filter(function (x) { return x.fecha && x.fecha.startsWith(mA); }).reduce(function (s, x) { return s + (parseFloat(x.monto) || 0); }, 0);
+  var tpT = D.pag.reduce(function (s, x) { return s + (parseFloat(x.monto) || 0); }, 0);
+  var h = '';
+  D.pag.slice().sort(function (a, b) { return (b.fecha || '').localeCompare(a.fecha || ''); }).forEach(function (pg) {
+    var dg = pg.diagnostico_id ? gD(pg.diagnostico_id) : null;
+    var v = dg ? gV(dg.vehiculo_id) : null;
+    var cl = dg ? (v ? gC(v.cliente_id) : null) : null;
+    var isU = pg.metodo === 'efectivo_usd';
+    h += '<tr><td class="text-xs text-muted">' + fF(pg.fecha) + '</td><td class="text-xs font-semibold">' + (v ? v.marca + ' ' + v.modelo + ' (' + v.placa + ')' : '—') + '</td><td class="text-xs text-muted">' + (cl ? cl.nombre + ' ' + cl.apellido : 'Pago directo') + '</td><td>' + mB(pg.metodo) + '</td><td style="text-align:right" class="font-bold text-accent">' + fM(pg.monto) + (isU ? '<br><span class="text-[10px] text-usd font-normal">($' + (pg.monto / TDC).toFixed(2) + ')</span>' : '') + '</td><td style="text-align:right"><button class="btn-icon" data-action="del" data-id="' + pg.id + '" data-tb="pagos"><i class="fa-solid fa-trash text-xs text-danger"></i></button></td></tr>';
+  });
+  c.innerHTML = '<div class="fade-in">' +
+    '<div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-6">' +
+    sc('Cobrado Mes', fM(tp), '', 'fa-arrow-trend-up', 'accent') +
+    sc('Total Acumulado', fM(tpT), '', 'fa-money-bill-wave', 'info') +
+    '</div><div class="mb-6"><button class="btn btn-primary" onclick="amo(fPagF(null))"><i class="fa-solid fa-plus"></i> Registrar Pago</button></div>' +
+    '<div class="bg-card border border-border rounded-2xl overflow-hidden"><div class="overflow-x-auto"><table class="data-table"><thead><tr><th>Fecha</th><th>Orden</th><th>Cliente</th><th>Metodo</th><th style="text-align:right">Monto</th><th>Acc.</th></tr></thead><tbody>' +
+    (h || '<tr><td colspan="6"><div class="empty-state"><i class="fa-solid fa-coins"></i><p>Sin pagos</p></div></td></tr>') +
+    '</tbody></table></div></div>';
+}
+
+window.fPagF = function (did) {
+  if (!did) return '<div class="text-center" style="padding:20px"><p style="color:#EF4444;font-size:13px">Selecciona una orden desde Diagnosticos</p><button class="btn btn-secondary" style="margin-top:10px" onclick="cmo()">Cerrar</button></div>';
+  var dg = gD(did);
+  if (!dg) return '<div style="padding:20px"><p>No encontrada</p></div>';
+  var v = gV(dg.vehiculo_id);
+  var cl = v ? gC(v.cliente_id) : null;
+  var pgs = vPag(did);
+  var tp = 0;
+  pgs.forEach(function (pg) { tp += parseFloat(pg.monto) || 0; });
+  var saldo = (parseFloat(dg.costo) || 0) - tp;
+  var metOpts = Object.keys(MT_MAP).map(function (m) { return '<option value="' + m + '">' + MT_MAP[m] + '</option>'; }).join('');
+  return '<form id="FrPag">' +
+    '<div class="p-4 rounded-xl bg-surface mb-4"><p class="text-sm font-bold text-fg">' + (v ? v.marca + ' ' + v.modelo + ' (' + v.placa + ')' : '—') + '</p>' +
+    '<p class="text-xs text-muted">' + (cl ? cl.nombre + ' ' + cl.apellido : '') + '</p>' +
+    '<p class="mt-2">Costo: <span class="text-accent font-bold">' + fM(dg.costo) + '</span> | Pagado: <span class="text-accent font-bold">' + fM(tp) + '</span> | Saldo: <span class="font-bold ' + (saldo > 0 ? 'text-danger' : 'text-accent') + '">' + fM(saldo) + '</span></p></div>' +
+    '<input type="hidden" name="did" value="' + did + '">' +
+    '<div class="grid grid-cols-2 gap-4">' +
+    GF('number', 'Monto *', '', 'monto') +
+    GF('date', 'Fecha', today(), 'fecha') +
+    '<div class="form-group"><label class="form-label">Metodo</label><select class="form-input" name="metodo">' + metOpts + '</select></div>' +
+    GF('text', 'Referencia', '', 'referencia') +
+    '</div><div class="p-3 rounded-xl bg-surface border border-border"><p class="text-[11px] text-muted"><i class="fa-solid fa-circle-info mr-1"></i> TC: <span class="text-fg font-bold">$1 = ' + TDC.toFixed(2) + '</span></p></div>' +
+    '<input type="hidden" name="_edit_id" value="">' +
+    '</form>';
+};
+
+document.addEventListener('submit', function (e) {
+  if (e.target.id !== 'FrPag') return;
+  e.preventDefault();
+  var fd = new FormData(e.target);
+  var did = fd.get('did');
+  var mI = parseFloat(fd.get('monto')) || 0;
+  if (!did) { toast('Selecciona orden', 'error'); return; }
+  if (mI <= 0) { toast('Monto invalido', 'error'); return; }
+  var me = fd.get('metodo');
+  /* FIX #4: var d en vez de d sin declarar */
+  var mP = me === 'efectivo_usd' ? Math.round(mI * TDC * 100) / 100 : mI;
+  var d = { diagnostico_id: did, monto: mP, fecha: fd.get('fecha') || today(), metodo: me, referencia: fd.get('referencia') || '' };
+  S.from('pagos').insert([d]).then(function (r) {
+    if (r.error) { toast(r.error.message, 'error'); return; }
+    toast('Pago registrado' + (me === 'efectivo_usd' ? ' ($' + mI + ' USD)' : ''));
+    cmo();
+    rl().then(function () { nav('pagos'); });
+  });
+});
+
+/* ===== REPORTES — FIX #1 y #2: funcion completa, sin variable "ing" ===== */
+function rRep(c) {
+  var now = new Date();
+  var mA = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+  var mI = D.pag.filter(function (x) { return x.fecha && x.fecha.startsWith(mA); }).reduce(function (s, x) { return s + (parseFloat(x.monto) || 0); }, 0);
+  var mG = D.gas.filter(function (x) { return x.fecha && x.fecha.startsWith(mA); }).reduce(function (s, x) { return s + (parseFloat(x.monto) || 0); }, 0);
+  var bal = mI - mG;
+  var margen = mI > 0 ? ((bal / mI) * 100).toFixed(1) : '0.0';
+  var bc = bal >= 0 ? 'text-accent' : 'text-danger';
+  var bgc = bal >= 0 ? 'bg-accent/10' : 'bg-danger/10';
+  var gc = bal >= 0 ? '#10B981' : '#EF4444';
+
+  var mecs = {};
+  D.dg.forEach(function (d) { if (d.mecanico) mecs[d.mecanico] = (mecs[d.mecanico] || 0) + 1; });
+  var mecH = '';
+  Object.keys(mecs).sort(function (a, b) { return mecs[b] - mecs[a]; }).forEach(function (m) {
+    mecH += '<div class="flex justify-between text-xs py-1"><span class="text-muted"><i class="fa-solid fa-wrench mr-1 text-accent"></i>' + m + '</span><span class="text-fg font-bold">' + mecs[m] + ' ordenes</span></div>';
+  });
+  if (!mecH) mecH = '<p class="text-xs text-muted">Sin datos de mecanicos</p>';
+
+  var estOrd = { pendiente: 0, en_proceso: 0, completado: 0, cancelado: 0 };
+  D.dg.forEach(function (d) { if (estOrd[d.estado] !== undefined) estOrd[d.estado]++; });
+  var estH = '';
+  Object.keys(estOrd).forEach(function (k) {
+    var lb = { pendiente: 'Pendiente', en_proceso: 'En Proceso', completado: 'Completado', cancelado: 'Cancelado' };
+    var cols = { pendiente: '#F59E0B', en_proceso: '#06B6D4', completado: '#10B981', cancelado: '#EF4444' };
+    var pct = D.dg.length > 0 ? Math.round((estOrd[k] / D.dg.length) * 100) : 0;
+    estH += '<div class="mb-3"><div class="flex justify-between text-xs mb-1"><span class="text-muted">' + lb[k] + '</span><span class="font-bold" style="color:' + cols[k] + '">' + estOrd[k] + ' (' + pct + '%)</span></div><div class="progress-bar"><div class="progress-fill" style="width:' + pct + '%;background:' + cols[k] + '"></div></div></div>';
+  });
+
+  var porMet = {};
+  D.pag.forEach(function (p) { porMet[p.metodo] = (porMet[p.metodo] || 0) + (parseFloat(p.monto) || 0); });
+  var metH = '';
+  Object.keys(porMet).forEach(function (m) {
+    metH += '<div class="flex justify-between text-xs py-1"><span class="text-muted">' + mB(m) + '</span><span class="text-accent font-bold">' + fM(porMet[m]) + '</span></div>';
+  });
+  if (!metH) metH = '<p class="text-xs text-muted">Sin cobros</p>';
+
+  var tI2 = D.inv.reduce(function (s, i) { return s + (i.cantidad * (parseFloat(i.precio_unitario) || 0)); }, 0);
+
+  c.innerHTML = '<div class="fade-in">' +
+    '<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">' +
+    '<div class="stat-card"><div style="position:absolute;top:0;right:0;width:120px;height:120px;border-radius:50%;filter:blur(50px);opacity:.12;background:#10B981"></div><div class="mb-3"><span class="text-xs text-muted font-semibold uppercase tracking-wider font-display">Ingresos Mes</span></div><p class="text-2xl font-extrabold font-display text-accent">' + fM(mI) + '</p></div>' +
+    '<div class="stat-card"><div style="position:absolute;top:0;right:0;width:120px;height:120px;border-radius:50%;filter:blur(50px);opacity:.12;background:#EF4444"></div><div class="mb-3"><span class="text-xs text-muted font-semibold uppercase tracking-wider font-display">Gastos Mes</span></div><p class="text-2xl font-extrabold font-display text-danger">' + fM(mG) + '</p></div>' +
+    '<div class="stat-card"><div style="position:absolute;top:0;right:0;width:120px;height:120px;border-radius:50%;filter:blur(50px);opacity:.12;background:' + gc + '"></div><div class="mb-3"><span class="text-xs text-muted font-semibold uppercase tracking-wider font-display">Balance</span></div><p class="text-2xl font-extrabold font-display ' + bc + '">' + fM(bal) + '</p><p class="text-xs text-muted mt-1">Margen: ' + margen + '%</p></div>' +
+    '<div class="stat-card"><div style="position:absolute;top:0;right:0;width:120px;height:120px;border-radius:50%;filter:blur(50px);opacity:.12;background:#8B5CF6"></div><div class="mb-3"><span class="text-xs text-muted font-semibold uppercase tracking-wider font-display">Inventario</span></div><p class="text-2xl font-extrabold font-display text-purple">' + fM(tI2) + '</p><p class="text-xs text-muted mt-1">' + D.inv.length + ' productos</p></div>' +
+    '</div>' +
+    '<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">' +
+    '<div class="bg-card border border-border rounded-2xl p-6"><h3 class="text-sm font-bold font-display text-fg mb-4"><i class="fa-solid fa-clipboard-list mr-2 text-info"></i>Estado de Ordenes</h3>' + estH + '</div>' +
+    '<div class="bg-card border border-border rounded-2xl p-6"><h3 class="text-sm font-bold font-display text-fg mb-4"><i class="fa-solid fa-wrench mr-2 text-accent"></i>Mecanicos</h3>' + mecH + '</div>' +
+    '<div class="bg-card border border-border rounded-2xl p-6"><h3 class="text-sm font-bold font-display text-fg mb-4"><i class="fa-solid fa-coins mr-2 text-accent"></i>Cobros por Metodo</h3>' + metH + '</div>' +
+    '</div>' +
+    '<div class="mt-6 bg-card border border-border rounded-2xl p-6"><h3 class="text-sm font-bold font-display text-fg mb-3"><i class="fa-solid fa-chart-pie mr-2 text-purple"></i>Resumen General</h3>' +
+    '<div class="grid grid-cols-2 sm:grid-cols-4 gap-4">' +
+    '<div class="p-3 rounded-xl bg-surface text-center"><p class="text-lg font-bold font-display text-fg">' + D.cl.length + '</p><p class="text-[10px] text-muted uppercase tracking-wider">Clientes</p></div>' +
+    '<div class="p-3 rounded-xl bg-surface text-center"><p class="text-lg font-bold font-display text-fg">' + D.vh.length + '</p><p class="text-[10px] text-muted uppercase tracking-wider">Vehiculos</p></div>' +
+    '<div class="p-3 rounded-xl bg-surface text-center"><p class="text-lg font-bold font-display text-fg">' + D.dg.length + '</p><p class="text-[10px] text-muted uppercase tracking-wider">Ordenes</p></div>' +
+    '<div class="p-3 rounded-xl bg-surface text-center"><p class="text-lg font-bold font-display text-fg">' + D.pag.length + '</p><p class="text-[10px] text-muted uppercase tracking-wider">Pagos</p></div>' +
+    '</div></div></div>';
+}
+
+/* ===== BOOT — debe ser window para que el primer <script> lo encuentre ===== */
+window.bootApp = function () {
+  document.getElementById('SS').style.display = 'none';
+  document.getElementById('AM').style.display = 'block';
+  document.getElementById('UserEmail').textContent = window._user ? window._user.email : '';
+  S = window._sb;
+  rl().then(function () {
+    nav('dashboard');
+    consultarDolar();
+  }).catch(function (ex) {
+    console.error('Error inicializando:', ex);
+    toast('Error cargando datos', 'error');
+  });
+};
+
+} catch (ex) {
+  console.error('Error critico TallerPro:', ex);
+  document.getElementById('PC').innerHTML = '<div class="empty-state"><i class="fa-solid fa-bug"></i><p>Error al iniciar la aplicacion</p></div>';
+}
+})();
