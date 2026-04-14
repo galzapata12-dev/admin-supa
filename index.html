@@ -131,7 +131,6 @@ textarea.form-input{resize:vertical;min-height:70px}
 
 <div class="toast-container" id="TC"></div>
 
-<!-- LOGIN -->
 <div id="SS" class="login-screen">
   <div class="bg-card border border-border rounded-2xl p-8" style="max-width:400px;width:92%;position:relative;z-index:1">
     <div class="text-center mb-7">
@@ -171,10 +170,8 @@ textarea.form-input{resize:vertical;min-height:70px}
   </div>
 </div>
 
-<!-- APP -->
 <div id="AM" style="display:none;height:100vh">
   <div style="display:flex;height:100%">
-
     <aside class="sidebar" id="SB">
       <div class="p-6 pb-4">
         <div class="flex items-center gap-3">
@@ -188,13 +185,11 @@ textarea.form-input{resize:vertical;min-height:70px}
         </div>
       </div>
       <div class="glow-line"></div>
-
       <nav class="py-4 flex-1 overflow-y-auto">
         <div class="px-5 mb-2"><span class="text-[10px] text-muted/60 uppercase tracking-widest font-semibold">Principal</span></div>
         <div class="nav-item active" data-p="dashboard"><i class="fa-solid fa-chart-pie"></i> Dashboard</div>
         <div class="nav-item" data-p="clientes"><i class="fa-solid fa-users"></i> Clientes</div>
         <div class="nav-item" data-p="vehiculos"><i class="fa-solid fa-car"></i> Vehiculos</div>
-
         <div class="px-5 mt-4 mb-2"><span class="text-[10px] text-muted/60 uppercase tracking-widest font-semibold">Operaciones</span></div>
         <div class="nav-item" data-p="diagnosticos"><i class="fa-solid fa-stethoscope"></i> Diagnosticos</div>
         <div class="nav-item" data-p="kilometraje" style="position:relative">
@@ -207,17 +202,14 @@ textarea.form-input{resize:vertical;min-height:70px}
           <i class="fa-solid fa-bell"></i> Alertas
           <span class="nav-badge" id="nbNf" style="display:none">0</span>
         </div>
-
         <div class="px-5 mt-4 mb-2"><span class="text-[10px] text-muted/60 uppercase tracking-widest font-semibold">Config</span></div>
         <div class="nav-item" data-p="servicios"><i class="fa-solid fa-list-check"></i> Servicios</div>
-
         <div class="px-5 mt-4 mb-2"><span class="text-[10px] text-muted/60 uppercase tracking-widest font-semibold">Finanzas</span></div>
         <div class="nav-item" data-p="inventario"><i class="fa-solid fa-boxes-stacked"></i> Inventario</div>
         <div class="nav-item" data-p="gastos"><i class="fa-solid fa-receipt"></i> Gastos</div>
         <div class="nav-item" data-p="pagos"><i class="fa-solid fa-coins"></i> Cobros y Pagos</div>
         <div class="nav-item" data-p="reports"><i class="fa-solid fa-chart-line"></i> Reportes</div>
       </nav>
-
       <div class="dolar-widget">
         <div class="flex items-center justify-between mb-2">
           <div class="flex items-center gap-2"><span class="text-base">🇺🇸</span><span class="rl">USD/MXN</span></div>
@@ -230,14 +222,12 @@ textarea.form-input{resize:vertical;min-height:70px}
           <button class="btn btn-sm btn-secondary" id="BtnDol">Fijar</button>
         </div>
       </div>
-
       <div class="p-4 border-t border-border mt-auto">
         <button class="nav-item" id="BtnOut" style="margin:0;color:#EF4444">
           <i class="fa-solid fa-right-from-bracket"></i> Cerrar Sesion
         </button>
       </div>
     </aside>
-
     <div class="main-wrap" style="margin-left:260px;flex:1;overflow-y:auto;background:#0C0E14">
       <header class="sticky top-0 z-30 bg-bg/80 backdrop-blur-xl border-b border-border px-8 py-4 flex items-center justify-between">
         <div class="flex items-center gap-3">
@@ -259,7 +249,6 @@ textarea.form-input{resize:vertical;min-height:70px}
       </header>
       <main class="p-8" id="PC"></main>
     </div>
-
   </div>
 </div>
 
@@ -274,7 +263,6 @@ textarea.form-input{resize:vertical;min-height:70px}
   </div>
 </div>
 
-<!-- AUTH -->
 <script>
 (function () {
   function toast(m, t) {
@@ -285,9 +273,7 @@ textarea.form-input{resize:vertical;min-height:70px}
     el.innerHTML = '<i class="fa-solid ' + (ic[t] || ic.info) + '"></i> ' + m;
     document.getElementById('TC').appendChild(el);
     setTimeout(function () {
-      el.style.opacity = '0';
-      el.style.transform = 'translateX(40px)';
-      el.style.transition = 'all .3s';
+      el.style.opacity = '0'; el.style.transform = 'translateX(40px)'; el.style.transition = 'all .3s';
       setTimeout(function () { el.remove(); }, 300);
     }, 3000);
   }
@@ -298,8 +284,7 @@ textarea.form-input{resize:vertical;min-height:70px}
     var u = document.getElementById('SU').value.trim();
     var k = document.getElementById('KYI').value.trim();
     if (!u || !k) { toast('Completa URL y Key', 'error'); return; }
-    localStorage.setItem('tp_url', u);
-    localStorage.setItem('tp_key', k);
+    localStorage.setItem('tp_url', u); localStorage.setItem('tp_key', k);
     toast('Config guardada. Recargando...');
     setTimeout(function () { location.reload(); }, 1000);
   });
@@ -315,34 +300,27 @@ textarea.form-input{resize:vertical;min-height:70px}
     var pass = document.getElementById('LP').value;
     if (!email || !pass) {
       document.getElementById('SM').textContent = 'Completa email y contrasena';
-      document.getElementById('SE').style.display = 'block';
-      return;
+      document.getElementById('SE').style.display = 'block'; return;
     }
     document.getElementById('SE').style.display = 'none';
-
     var url = localStorage.getItem('tp_url') || '';
     var key = localStorage.getItem('tp_key') || '';
     if (!url || !key || url.indexOf('supabase') < 0) {
       document.getElementById('SM').textContent = 'Configura URL y Key primero';
-      document.getElementById('SE').style.display = 'block';
-      return;
+      document.getElementById('SE').style.display = 'block'; return;
     }
     if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
       document.getElementById('SM').textContent = 'Supabase no cargo';
-      document.getElementById('SE').style.display = 'block';
-      return;
+      document.getElementById('SE').style.display = 'block'; return;
     }
-
     var sb = window.supabase.createClient(url, key);
     sb.auth.signInWithPassword({ email: email, password: pass }).then(function (r) {
       if (r.error) {
         document.getElementById('SM').textContent = r.error.message;
-        document.getElementById('SE').style.display = 'block';
-        return;
+        document.getElementById('SE').style.display = 'block'; return;
       }
       toast('Bienvenido');
-      window._sb = sb;
-      window._user = r.data.user;
+      window._sb = sb; window._user = r.data.user;
       bootApp();
     }).catch(function (ex) {
       document.getElementById('SM').textContent = ex.message || 'Error de conexion';
@@ -360,14 +338,12 @@ textarea.form-input{resize:vertical;min-height:70px}
 })();
 </script>
 
-<!-- APP -->
 <script>
 (function () {
 try {
 
 var S = null;
 var PA = 'dashboard';
-/* FIX #3: window.HUID para que sea accesible desde onclick inline */
 window.HUID = null;
 var TDC = 18;
 
@@ -402,7 +378,6 @@ var TITLES = {
   reports: ['Reportes', 'Balance mensual']
 };
 
-/* Utilidades */
 function Q(s) { return document.querySelector(s); }
 function QQ(s) { return document.querySelectorAll(s); }
 
@@ -411,13 +386,11 @@ function fF(f) {
   try { return new Date(f).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' }); }
   catch (e) { return '—'; }
 }
-
 function fFH(f) {
   if (!f) return '—';
   try { return new Date(f).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }); }
   catch (e) { return '—'; }
 }
-
 function fM(v) {
   try { return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(v || 0); }
   catch (e) { return '$0.00'; }
@@ -434,7 +407,6 @@ function vKm(id) { return D.km.filter(function (x) { return x.vehiculo_id === id
 function vPag(did) { return D.pag.filter(function (x) { return x.diagnostico_id === did; }); }
 function ini(n, a) { return ((n ? n[0] : '') + (a ? a[0] : '')).toUpperCase(); }
 
-/* HTML helpers */
 function GF(type, label, value, name) {
   return '<div class="form-group"><label class="form-label">' + label + '</label>' +
     '<input type="' + type + '" class="form-input" name="' + name + '" value="' + (value != null ? value : '') + '"></div>';
@@ -442,10 +414,6 @@ function GF(type, label, value, name) {
 function GST(label, value, name) {
   return '<div class="form-group"><label class="form-label">' + label + '</label>' +
     '<textarea class="form-input" name="' + name + '" rows="2">' + (value || '') + '</textarea></div>';
-}
-function MB() {
-  return '<button type="button" class="btn btn-secondary" onclick="cmo()">Cancelar</button>' +
-    '<button type="submit" class="btn btn-primary"><i class="fa-solid fa-save"></i> Guardar</button>';
 }
 function sc(label, value, sub, icon, color) {
   var gc = { accent: '#10B981', info: '#06B6D4', danger: '#EF4444', warning: '#F59E0B', purple: '#8B5CF6' };
@@ -492,7 +460,6 @@ function cTag(c) {
     : '<span class="ctag cfe"><i class="fa-solid fa-calendar"></i> Fecha</span>';
 }
 
-/* Modal */
 function amo(title, body, footer) {
   Q('#MTt').textContent = title;
   Q('#MBd').innerHTML = body;
@@ -504,7 +471,6 @@ window.amo = amo;
 window.cmo = cmo;
 Q('#MO').addEventListener('click', function (e) { if (e.target === Q('#MO')) cmo(); });
 
-/* Delegación: solo delete */
 document.addEventListener('click', function (e) {
   var btn = e.target.closest('[data-action]');
   if (!btn) return;
@@ -513,7 +479,6 @@ document.addEventListener('click', function (e) {
   if (action === 'del') delR(id, btn.getAttribute('data-tb'));
 });
 
-/* Dólar */
 Q('#btnRD').addEventListener('click', consultarDolar);
 Q('#BtnDol').addEventListener('click', function () {
   var v = parseFloat(Q('#dolM').value);
@@ -540,7 +505,6 @@ function consultarDolar() {
     .finally(function () { Q('#btnRD').querySelector('i').style.animation = ''; });
 }
 
-/* Kilometraje */
 function calcKm(sk) {
   var v = gV(sk.vehiculo_id);
   if (!v) return { st: 'ok', kmR: 0, diR: 999, pct: 0, col: '#6E7489', cond: 'km', kmA: 0 };
@@ -570,7 +534,6 @@ function kmB(es) {
   return '<span class="badge b-normal">OK</span>';
 }
 
-/* Alertas automáticas */
 async function genAlertas() {
   if (!S) return;
   var hoy = new Date(); hoy.setHours(0, 0, 0, 0);
@@ -621,7 +584,6 @@ function updBadges() {
   else { b2.style.display = 'none'; }
 }
 
-/* Datos */
 async function load() {
   var r = await Promise.all([
     S.from('clientes').select('*').order('fecha_registro', { ascending: false }),
@@ -662,7 +624,6 @@ function delR(id, tb) {
   });
 }
 
-/* Navegación */
 QQ('.nav-item[data-p]').forEach(function (el) {
   el.addEventListener('click', function () { nav(this.getAttribute('data-p')); });
 });
@@ -710,8 +671,9 @@ function nav(p) {
   }
   Q('#SB').classList.remove('open');
 }
+/* FIX #7: exponer nav al scope global para los onclick inline */
+window.nav = nav;
 
-/* ===== DASHBOARD ===== */
 function rDash(c) {
   var en = D.dg.filter(function (x) { return x.estado === 'en_proceso'; }).length;
   var pe = D.dg.filter(function (x) { return x.estado === 'pendiente'; }).length;
@@ -775,7 +737,6 @@ function rDash(c) {
     alH + '</div></div></div>';
 }
 
-/* ===== CLIENTES ===== */
 function rCl(c) {
   var h = '';
   D.cl.forEach(function (cl) {
@@ -844,12 +805,10 @@ document.addEventListener('submit', function (e) {
   p.then(function (r) {
     if (r.error) { toast(r.error.message, 'error'); return; }
     toast(id ? 'Actualizado' : 'Registrado');
-    cmo();
-    rl().then(function () { nav('clientes'); });
+    cmo(); rl().then(function () { nav('clientes'); });
   });
 });
 
-/* ===== VEHÍCULOS ===== */
 function rVh(c) {
   var h = '';
   D.vh.forEach(function (v) {
@@ -871,7 +830,6 @@ function rVh(c) {
       '<td class="text-xs font-semibold">' + (v.kilometraje ? v.kilometraje.toLocaleString() + ' km' : '—') + '</td>' +
       '<td>' + badge + '</td>' +
       '<td><div class="flex gap-1 justify-end">' +
-      /* FIX #3: usar window.HUID en vez de HUID */
       '<button class="btn-icon" style="color:#8B5CF6" onclick="window.HUID=\'' + v.id + '\';nav(\'historial_unidad\')"><i class="fa-solid fa-clock-rotate-left text-xs"></i></button>' +
       '<button class="btn-icon" onclick="amo(fDgF(null,\'' + v.id + '\'))"><i class="fa-solid fa-stethoscope text-xs"></i></button>' +
       '<button class="btn-icon" onclick="amo(fVhF(\'' + v.id + '\'))"><i class="fa-solid fa-pen text-xs"></i></button>' +
@@ -938,12 +896,10 @@ document.addEventListener('submit', function (e) {
   p.then(function (r) {
     if (r.error) { toast(r.error.message, 'error'); return; }
     toast(id ? 'Actualizado' : 'Registrado');
-    cmo();
-    rl().then(function () { nav('vehiculos'); });
+    cmo(); rl().then(function () { nav('vehiculos'); });
   });
 });
 
-/* ===== DIAGNÓSTICOS ===== */
 function rDg(c) {
   var h = '';
   D.dg.forEach(function (d) {
@@ -1042,8 +998,7 @@ document.addEventListener('submit', function (e) {
   p.then(function (r) {
     if (r.error) { toast(r.error.message, 'error'); return; }
     toast(id ? 'Actualizado' : 'Registrado');
-    cmo();
-    rl().then(function () { nav('diagnosticos'); });
+    cmo(); rl().then(function () { nav('diagnosticos'); });
   });
 });
 
@@ -1086,7 +1041,6 @@ async function mDDgH(id) {
 }
 window.mDDgH = mDDgH;
 
-/* ===== KILOMETRAJE ===== */
 function rKm(c) {
   var h = '';
   D.km.forEach(function (sk) {
@@ -1169,14 +1123,11 @@ document.addEventListener('submit', function (e) {
   p.then(function (r) {
     if (r.error) { toast(r.error.message, 'error'); return; }
     toast(id ? 'Actualizado' : 'Registrado');
-    cmo();
-    rl().then(function () { nav('kilometraje'); });
+    cmo(); rl().then(function () { nav('kilometraje'); });
   });
 });
 
-/* ===== HISTORIAL UNIDAD ===== */
 function rHU(c) {
-  /* FIX #3: leer window.HUID */
   if (!window.HUID) {
     c.innerHTML = '<div class="empty-state"><i class="fa-solid fa-car"></i><p>Selecciona un vehiculo desde Vehiculos</p></div>';
     return;
@@ -1215,7 +1166,6 @@ function rHU(c) {
     '</div>';
 }
 
-/* ===== COMUNICACIONES ===== */
 function rCo(c) {
   var h = '';
   D.co.forEach(function (cm) {
@@ -1270,12 +1220,10 @@ document.addEventListener('submit', function (e) {
   p.then(function (r) {
     if (r.error) { toast(r.error.message, 'error'); return; }
     toast(id ? 'Actualizado' : 'Registrado');
-    cmo();
-    rl().then(function () { nav('comunicaciones'); });
+    cmo(); rl().then(function () { nav('comunicaciones'); });
   });
 });
 
-/* ===== NOTIFICACIONES ===== */
 function rNf(c) {
   var h = '';
   D.nf.forEach(function (n) {
@@ -1321,7 +1269,6 @@ window.updNf = function (id, estado) {
   });
 };
 
-/* ===== SERVICIOS ===== */
 function rSv(c) {
   var h = '';
   D.sv.forEach(function (sv) {
@@ -1365,12 +1312,10 @@ document.addEventListener('submit', function (e) {
   p.then(function (r) {
     if (r.error) { toast(r.error.message, 'error'); return; }
     toast(id ? 'Actualizado' : 'Registrado');
-    cmo();
-    rl().then(function () { nav('servicios'); });
+    cmo(); rl().then(function () { nav('servicios'); });
   });
 });
 
-/* ===== INVENTARIO ===== */
 function rInv(c) {
   var h = '';
   D.inv.forEach(function (i) {
@@ -1440,13 +1385,11 @@ document.addEventListener('submit', function (e) {
     S.from('inventario').update({ cantidad: item.cantidad + cant }).eq('id', id).then(function (r) {
       if (r.error) { toast(r.error.message, 'error'); return; }
       toast('Stock: ' + (item.cantidad + cant));
-      cmo();
-      rl().then(function () { nav('inventario'); });
+      cmo(); rl().then(function () { nav('inventario'); });
     });
   }
 });
 
-/* ===== GASTOS ===== */
 function rGas(c) {
   var now = new Date();
   var mA = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
@@ -1469,209 +1412,11 @@ function rGas(c) {
     var isU = e.metodo === 'efectivo_usd';
     h += '<tr><td class="text-xs text-muted">' + fF(e.fecha) + '</td><td><span class="badge" style="background:' + co + '18;color:' + co + '">' + (e.categoria || 'Otros') + '</span></td><td class="text-sm text-fg">' + (e.concepto || '—') + '</td><td>' + mB(e.metodo) + '</td><td style="text-align:right" class="font-bold text-danger">' + fM(e.monto) + (isU ? '<br><span class="text-[10px] text-usd font-normal">($' + (e.monto / TDC).toFixed(2) + ')</span>' : '') + '</td><td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="amo(fGasF(\'' + e.id + '\'))"><i class="fa-solid fa-pen text-xs"></i></button><button class="btn-icon" data-action="del" data-id="' + e.id + '" data-tb="gastos"><i class="fa-solid fa-trash text-xs text-danger"></i></button></div></td></tr>';
   });
-  /* FIX #5: corregido — 3 cierres de div en vez de 4 */
+  /* FIX #5: corregido — 2 cierres de div despues de </table>, no 3 */
   c.innerHTML = '<div class="fade-in">' +
     '<div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-6">' +
     sc('Total Gastos', fM(totalG), D.gas.length + ' egresos', 'fa-receipt', 'danger') +
     sc('Gastos Mes', fM(gM), '', 'fa-calendar', 'warning') +
     '</div>' +
     (distH ? '<div class="bg-card border border-border rounded-2xl p-5 mb-6"><h3 class="text-sm font-bold font-display text-fg mb-3">Por Categoria</h3><div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">' + distH + '</div></div>' : '') +
-    '<div class="flex flex-wrap items-center justify-between gap-4 mb-4"><div class="search-box"><i class="fa-solid fa-magnifying-glass"></i><input type="text" class="form-input w-64" placeholder="Buscar..." id="sGas"></div><button class="btn btn-primary" onclick="amo(fGasF())"><i class="fa-solid fa-plus"></i> Nuevo Gasto</button></div>' +
-    '<div class="bg-card border border-border rounded-2xl overflow-hidden"><div class="overflow-x-auto"><table class="data-table"><thead><tr><th>Fecha</th><th>Categoria</th><th>Concepto</th><th>Metodo</th><th style="text-align:right">Monto</th><th>Acciones</th></tr></thead><tbody>' +
-    (h || '<tr><td colspan="6"><div class="empty-state"><i class="fa-solid fa-receipt"></i><p>Sin gastos</p></div></td></tr>') +
-    '</tbody></table></div></div></div>';
-  Q('#sGas').addEventListener('input', function () {
-    var q = this.value.toLowerCase();
-    c.querySelector('tbody').innerHTML = D.gas.filter(function (e) {
-      return ((e.concepto || '') + ' ' + (e.proveedor || '')).toLowerCase().indexOf(q) >= 0;
-    }).map(function (e) {
-      var isU = e.metodo === 'efectivo_usd';
-      return '<tr><td class="text-xs text-muted">' + fF(e.fecha) + '</td><td class="text-sm text-fg">' + (e.concepto || '') + '</td><td style="text-align:right" class="font-bold text-danger">' + fM(e.monto) + (isU ? ' <span class="text-[10px] text-usd font-normal">($' + (e.monto / TDC).toFixed(2) + ')</span>' : '') + '</td><td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="amo(fGasF(\'' + e.id + '\'))"><i class="fa-solid fa-pen text-xs"></i></button></div></td></tr>';
-    }).join('') || '<tr><td colspan="6"><div class="empty-state"><p>Sin resultados</p></div></td></tr>';
-  });
-}
-
-window.fGasF = function (id) {
-  var e = id ? D.gas.find(function (x) { return x.id === id; }) : null;
-  var catOpts = Object.keys(GC_MAP).map(function (cat) { return '<option value="' + cat + '"' + (e && e.categoria === cat ? ' selected' : '') + '>' + cat + '</option>'; }).join('');
-  var metOpts = Object.keys(MT_MAP).map(function (m) { return '<option value="' + m + '"' + (e && e.metodo === m ? ' selected' : '') + '>' + MT_MAP[m] + '</option>'; }).join('');
-  return '<form id="FrGas"><div class="grid grid-cols-2 gap-4">' +
-    GF('date', 'Fecha *', e ? e.fecha || today() : today(), 'fecha') +
-    '<div class="form-group"><label class="form-label">Categoria</label><select class="form-input" name="categoria">' + catOpts + '</select></div>' +
-    GF('number', 'Monto *', e ? e.monto : '', 'monto') +
-    '<div class="form-group"><label class="form-label">Metodo</label><select class="form-input" name="metodo">' + metOpts + '</select></div>' +
-    GF('text', 'Proveedor', e ? e.proveedor : '', 'proveedor') +
-    '</div>' +
-    GF('text', 'Concepto', e ? e.concepto : '', 'concepto') +
-    GST('Notas', e ? e.notas : '', 'notas') +
-    '<div class="p-3 rounded-xl bg-surface border border-border"><p class="text-[11px] text-muted"><i class="fa-solid fa-circle-info mr-1"></i> TC: <span class="text-fg font-bold">$1 = ' + TDC.toFixed(2) + ' MXN</span></p></div>' +
-    '<input type="hidden" name="_edit_id" value="' + (id || '') + '">' +
-    '</form>';
-};
-
-document.addEventListener('submit', function (e) {
-  if (e.target.id !== 'FrGas') return;
-  e.preventDefault();
-  var fd = new FormData(e.target);
-  var id = fd.get('_edit_id');
-  var d = { fecha: fd.get('fecha'), categoria: fd.get('categoria') || 'Otros', concepto: fd.get('concepto'), monto: parseFloat(fd.get('monto')) || 0, proveedor: fd.get('proveedor') || '', metodo: fd.get('metodo') || 'efectivo', notas: fd.get('notas') || '' };
-  if (d.metodo === 'efectivo_usd') {
-    var vUsd = d.monto;
-    d.monto = Math.round(vUsd * TDC * 100) / 100;
-    d.concepto = (fd.get('concepto') || '') + ' ($' + vUsd + ' USD)';
-  }
-  var p = id ? S.from('gastos').update(d).eq('id', id) : S.from('gastos').insert([d]);
-  p.then(function (r) { if (r.error) { toast(r.error.message, 'error'); return; } toast(id ? 'Actualizado' : 'Registrado'); cmo(); rl().then(function () { nav('gastos'); }); });
-});
-
-/* ===== COBROS Y PAGOS ===== */
-function rPag(c) {
-  var now = new Date();
-  var mA = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
-  var tp = D.pag.filter(function (x) { return x.fecha && x.fecha.startsWith(mA); }).reduce(function (s, x) { return s + (parseFloat(x.monto) || 0); }, 0);
-  var tpT = D.pag.reduce(function (s, x) { return s + (parseFloat(x.monto) || 0); }, 0);
-  var h = '';
-  D.pag.slice().sort(function (a, b) { return (b.fecha || '').localeCompare(a.fecha || ''); }).forEach(function (pg) {
-    var dg = pg.diagnostico_id ? gD(pg.diagnostico_id) : null;
-    var v = dg ? gV(dg.vehiculo_id) : null;
-    var cl = dg ? (v ? gC(v.cliente_id) : null) : null;
-    var isU = pg.metodo === 'efectivo_usd';
-    h += '<tr><td class="text-xs text-muted">' + fF(pg.fecha) + '</td><td class="text-xs font-semibold">' + (v ? v.marca + ' ' + v.modelo + ' (' + v.placa + ')' : '—') + '</td><td class="text-xs text-muted">' + (cl ? cl.nombre + ' ' + cl.apellido : 'Pago directo') + '</td><td>' + mB(pg.metodo) + '</td><td style="text-align:right" class="font-bold text-accent">' + fM(pg.monto) + (isU ? '<br><span class="text-[10px] text-usd font-normal">($' + (pg.monto / TDC).toFixed(2) + ')</span>' : '') + '</td><td style="text-align:right"><button class="btn-icon" data-action="del" data-id="' + pg.id + '" data-tb="pagos"><i class="fa-solid fa-trash text-xs text-danger"></i></button></td></tr>';
-  });
-  c.innerHTML = '<div class="fade-in">' +
-    '<div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-6">' +
-    sc('Cobrado Mes', fM(tp), '', 'fa-arrow-trend-up', 'accent') +
-    sc('Total Acumulado', fM(tpT), '', 'fa-money-bill-wave', 'info') +
-    '</div><div class="mb-6"><button class="btn btn-primary" onclick="amo(fPagF(null))"><i class="fa-solid fa-plus"></i> Registrar Pago</button></div>' +
-    '<div class="bg-card border border-border rounded-2xl overflow-hidden"><div class="overflow-x-auto"><table class="data-table"><thead><tr><th>Fecha</th><th>Orden</th><th>Cliente</th><th>Metodo</th><th style="text-align:right">Monto</th><th>Acc.</th></tr></thead><tbody>' +
-    (h || '<tr><td colspan="6"><div class="empty-state"><i class="fa-solid fa-coins"></i><p>Sin pagos</p></div></td></tr>') +
-    '</tbody></table></div></div>';
-}
-
-window.fPagF = function (did) {
-  if (!did) return '<div class="text-center" style="padding:20px"><p style="color:#EF4444;font-size:13px">Selecciona una orden desde Diagnosticos</p><button class="btn btn-secondary" style="margin-top:10px" onclick="cmo()">Cerrar</button></div>';
-  var dg = gD(did);
-  if (!dg) return '<div style="padding:20px"><p>No encontrada</p></div>';
-  var v = gV(dg.vehiculo_id);
-  var cl = v ? gC(v.cliente_id) : null;
-  var pgs = vPag(did);
-  var tp = 0;
-  pgs.forEach(function (pg) { tp += parseFloat(pg.monto) || 0; });
-  var saldo = (parseFloat(dg.costo) || 0) - tp;
-  var metOpts = Object.keys(MT_MAP).map(function (m) { return '<option value="' + m + '">' + MT_MAP[m] + '</option>'; }).join('');
-  return '<form id="FrPag">' +
-    '<div class="p-4 rounded-xl bg-surface mb-4"><p class="text-sm font-bold text-fg">' + (v ? v.marca + ' ' + v.modelo + ' (' + v.placa + ')' : '—') + '</p>' +
-    '<p class="text-xs text-muted">' + (cl ? cl.nombre + ' ' + cl.apellido : '') + '</p>' +
-    '<p class="mt-2">Costo: <span class="text-accent font-bold">' + fM(dg.costo) + '</span> | Pagado: <span class="text-accent font-bold">' + fM(tp) + '</span> | Saldo: <span class="font-bold ' + (saldo > 0 ? 'text-danger' : 'text-accent') + '">' + fM(saldo) + '</span></p></div>' +
-    '<input type="hidden" name="did" value="' + did + '">' +
-    '<div class="grid grid-cols-2 gap-4">' +
-    GF('number', 'Monto *', '', 'monto') +
-    GF('date', 'Fecha', today(), 'fecha') +
-    '<div class="form-group"><label class="form-label">Metodo</label><select class="form-input" name="metodo">' + metOpts + '</select></div>' +
-    GF('text', 'Referencia', '', 'referencia') +
-    '</div><div class="p-3 rounded-xl bg-surface border border-border"><p class="text-[11px] text-muted"><i class="fa-solid fa-circle-info mr-1"></i> TC: <span class="text-fg font-bold">$1 = ' + TDC.toFixed(2) + '</span></p></div>' +
-    '<input type="hidden" name="_edit_id" value="">' +
-    '</form>';
-};
-
-document.addEventListener('submit', function (e) {
-  if (e.target.id !== 'FrPag') return;
-  e.preventDefault();
-  var fd = new FormData(e.target);
-  var did = fd.get('did');
-  var mI = parseFloat(fd.get('monto')) || 0;
-  if (!did) { toast('Selecciona orden', 'error'); return; }
-  if (mI <= 0) { toast('Monto invalido', 'error'); return; }
-  var me = fd.get('metodo');
-  /* FIX #4: var d en vez de d sin declarar */
-  var mP = me === 'efectivo_usd' ? Math.round(mI * TDC * 100) / 100 : mI;
-  var d = { diagnostico_id: did, monto: mP, fecha: fd.get('fecha') || today(), metodo: me, referencia: fd.get('referencia') || '' };
-  S.from('pagos').insert([d]).then(function (r) {
-    if (r.error) { toast(r.error.message, 'error'); return; }
-    toast('Pago registrado' + (me === 'efectivo_usd' ? ' ($' + mI + ' USD)' : ''));
-    cmo();
-    rl().then(function () { nav('pagos'); });
-  });
-});
-
-/* ===== REPORTES — FIX #1 y #2: funcion completa, sin variable "ing" ===== */
-function rRep(c) {
-  var now = new Date();
-  var mA = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
-  var mI = D.pag.filter(function (x) { return x.fecha && x.fecha.startsWith(mA); }).reduce(function (s, x) { return s + (parseFloat(x.monto) || 0); }, 0);
-  var mG = D.gas.filter(function (x) { return x.fecha && x.fecha.startsWith(mA); }).reduce(function (s, x) { return s + (parseFloat(x.monto) || 0); }, 0);
-  var bal = mI - mG;
-  var margen = mI > 0 ? ((bal / mI) * 100).toFixed(1) : '0.0';
-  var bc = bal >= 0 ? 'text-accent' : 'text-danger';
-  var bgc = bal >= 0 ? 'bg-accent/10' : 'bg-danger/10';
-  var gc = bal >= 0 ? '#10B981' : '#EF4444';
-
-  var mecs = {};
-  D.dg.forEach(function (d) { if (d.mecanico) mecs[d.mecanico] = (mecs[d.mecanico] || 0) + 1; });
-  var mecH = '';
-  Object.keys(mecs).sort(function (a, b) { return mecs[b] - mecs[a]; }).forEach(function (m) {
-    mecH += '<div class="flex justify-between text-xs py-1"><span class="text-muted"><i class="fa-solid fa-wrench mr-1 text-accent"></i>' + m + '</span><span class="text-fg font-bold">' + mecs[m] + ' ordenes</span></div>';
-  });
-  if (!mecH) mecH = '<p class="text-xs text-muted">Sin datos de mecanicos</p>';
-
-  var estOrd = { pendiente: 0, en_proceso: 0, completado: 0, cancelado: 0 };
-  D.dg.forEach(function (d) { if (estOrd[d.estado] !== undefined) estOrd[d.estado]++; });
-  var estH = '';
-  Object.keys(estOrd).forEach(function (k) {
-    var lb = { pendiente: 'Pendiente', en_proceso: 'En Proceso', completado: 'Completado', cancelado: 'Cancelado' };
-    var cols = { pendiente: '#F59E0B', en_proceso: '#06B6D4', completado: '#10B981', cancelado: '#EF4444' };
-    var pct = D.dg.length > 0 ? Math.round((estOrd[k] / D.dg.length) * 100) : 0;
-    estH += '<div class="mb-3"><div class="flex justify-between text-xs mb-1"><span class="text-muted">' + lb[k] + '</span><span class="font-bold" style="color:' + cols[k] + '">' + estOrd[k] + ' (' + pct + '%)</span></div><div class="progress-bar"><div class="progress-fill" style="width:' + pct + '%;background:' + cols[k] + '"></div></div></div>';
-  });
-
-  var porMet = {};
-  D.pag.forEach(function (p) { porMet[p.metodo] = (porMet[p.metodo] || 0) + (parseFloat(p.monto) || 0); });
-  var metH = '';
-  Object.keys(porMet).forEach(function (m) {
-    metH += '<div class="flex justify-between text-xs py-1"><span class="text-muted">' + mB(m) + '</span><span class="text-accent font-bold">' + fM(porMet[m]) + '</span></div>';
-  });
-  if (!metH) metH = '<p class="text-xs text-muted">Sin cobros</p>';
-
-  var tI2 = D.inv.reduce(function (s, i) { return s + (i.cantidad * (parseFloat(i.precio_unitario) || 0)); }, 0);
-
-  c.innerHTML = '<div class="fade-in">' +
-    '<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">' +
-    '<div class="stat-card"><div style="position:absolute;top:0;right:0;width:120px;height:120px;border-radius:50%;filter:blur(50px);opacity:.12;background:#10B981"></div><div class="mb-3"><span class="text-xs text-muted font-semibold uppercase tracking-wider font-display">Ingresos Mes</span></div><p class="text-2xl font-extrabold font-display text-accent">' + fM(mI) + '</p></div>' +
-    '<div class="stat-card"><div style="position:absolute;top:0;right:0;width:120px;height:120px;border-radius:50%;filter:blur(50px);opacity:.12;background:#EF4444"></div><div class="mb-3"><span class="text-xs text-muted font-semibold uppercase tracking-wider font-display">Gastos Mes</span></div><p class="text-2xl font-extrabold font-display text-danger">' + fM(mG) + '</p></div>' +
-    '<div class="stat-card"><div style="position:absolute;top:0;right:0;width:120px;height:120px;border-radius:50%;filter:blur(50px);opacity:.12;background:' + gc + '"></div><div class="mb-3"><span class="text-xs text-muted font-semibold uppercase tracking-wider font-display">Balance</span></div><p class="text-2xl font-extrabold font-display ' + bc + '">' + fM(bal) + '</p><p class="text-xs text-muted mt-1">Margen: ' + margen + '%</p></div>' +
-    '<div class="stat-card"><div style="position:absolute;top:0;right:0;width:120px;height:120px;border-radius:50%;filter:blur(50px);opacity:.12;background:#8B5CF6"></div><div class="mb-3"><span class="text-xs text-muted font-semibold uppercase tracking-wider font-display">Inventario</span></div><p class="text-2xl font-extrabold font-display text-purple">' + fM(tI2) + '</p><p class="text-xs text-muted mt-1">' + D.inv.length + ' productos</p></div>' +
-    '</div>' +
-    '<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">' +
-    '<div class="bg-card border border-border rounded-2xl p-6"><h3 class="text-sm font-bold font-display text-fg mb-4"><i class="fa-solid fa-clipboard-list mr-2 text-info"></i>Estado de Ordenes</h3>' + estH + '</div>' +
-    '<div class="bg-card border border-border rounded-2xl p-6"><h3 class="text-sm font-bold font-display text-fg mb-4"><i class="fa-solid fa-wrench mr-2 text-accent"></i>Mecanicos</h3>' + mecH + '</div>' +
-    '<div class="bg-card border border-border rounded-2xl p-6"><h3 class="text-sm font-bold font-display text-fg mb-4"><i class="fa-solid fa-coins mr-2 text-accent"></i>Cobros por Metodo</h3>' + metH + '</div>' +
-    '</div>' +
-    '<div class="mt-6 bg-card border border-border rounded-2xl p-6"><h3 class="text-sm font-bold font-display text-fg mb-3"><i class="fa-solid fa-chart-pie mr-2 text-purple"></i>Resumen General</h3>' +
-    '<div class="grid grid-cols-2 sm:grid-cols-4 gap-4">' +
-    '<div class="p-3 rounded-xl bg-surface text-center"><p class="text-lg font-bold font-display text-fg">' + D.cl.length + '</p><p class="text-[10px] text-muted uppercase tracking-wider">Clientes</p></div>' +
-    '<div class="p-3 rounded-xl bg-surface text-center"><p class="text-lg font-bold font-display text-fg">' + D.vh.length + '</p><p class="text-[10px] text-muted uppercase tracking-wider">Vehiculos</p></div>' +
-    '<div class="p-3 rounded-xl bg-surface text-center"><p class="text-lg font-bold font-display text-fg">' + D.dg.length + '</p><p class="text-[10px] text-muted uppercase tracking-wider">Ordenes</p></div>' +
-    '<div class="p-3 rounded-xl bg-surface text-center"><p class="text-lg font-bold font-display text-fg">' + D.pag.length + '</p><p class="text-[10px] text-muted uppercase tracking-wider">Pagos</p></div>' +
-    '</div></div></div>';
-}
-
-/* ===== BOOT — debe ser window para que el primer <script> lo encuentre ===== */
-window.bootApp = function () {
-  document.getElementById('SS').style.display = 'none';
-  document.getElementById('AM').style.display = 'block';
-  document.getElementById('UserEmail').textContent = window._user ? window._user.email : '';
-  S = window._sb;
-  rl().then(function () {
-    nav('dashboard');
-    consultarDolar();
-  }).catch(function (ex) {
-    console.error('Error inicializando:', ex);
-    toast('Error cargando datos', 'error');
-  });
-};
-
-} catch (ex) {
-  console.error('Error critico TallerPro:', ex);
-  document.getElementById('PC').innerHTML = '<div class="empty-state"><i class="fa-solid fa-bug"></i><p>Error al iniciar la aplicacion</p></div>';
-}
-})();
+    '<div class="flex flex-wrap
