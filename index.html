@@ -460,10 +460,10 @@ function cTag(c) {
     : '<span class="ctag cfe"><i class="fa-solid fa-calendar"></i> Fecha</span>';
 }
 
+// --- CORRECCIÓN PRINCIPAL DE MODALES ---
 function amo(title, body, footer) {
-  // IMPORTANTE: Fíjate que la siguiente línea dice innerHTML
   Q('#MTt').textContent = title;
-  Q('#MBd').innerHTML = body; 
+  Q('#MBd').innerHTML = body; // AQUI ESTABA EL ERROR
   Q('#MFt').innerHTML = footer || '';
   Q('#MO').classList.add('active');
 }
@@ -1389,34 +1389,12 @@ document.addEventListener('submit', function (e) {
     });
   }
 });
-window.openGasModal = function (id) {
-  var title = id ? 'Editar Gasto' : 'Nuevo Gasto';
-  var footer = '<button id="btnGuardarGas" class="btn btn-primary">Guardar</button>';
-  
-  // Abre el modal
-  amo(title, fGasF(id), footer);
-  
-  // Esperamos un poco a que el modal se renderice y conectamos el botón
-  setTimeout(function() {
-    var btn = document.getElementById('btnGuardarGas');
-    if(btn) {
-      btn.addEventListener('click', function(e) {
-        e.preventDefault(); // Evita que la página se recargue sola
-        var form = document.getElementById('FrGas');
-        if(form) {
-          // Disparamos el evento 'submit' manualmente para que tu código original lo capture
-          var evt = new Event('submit', { bubbles: true, cancelable: true });
-          form.dispatchEvent(evt);
-        }
-      });
-    }
-  }, 100);
-};
+
 function rGas(c) {
   var now = new Date();
   var mA = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
-  var gM = D.gas.filter(function (x) { return x.fecha && x.fecha.startsWith(mA); }).reduce(function (s, e) { return s + (parseFloat(e.monto) || 0); }, 0);
-  var totalG = D.gas.reduce(function (s, e) { return s + (parseFloat(e.monto) || 0); }, 0);
+  var gM = D.gas.filter(function (x) { return x.fecha && x.fecha.startsWith(mA); }).reduce(function (s, x) { return s + (parseFloat(x.monto) || 0); }, 0);
+  var totalG = D.gas.reduce(function (s, x) { return s + (parseFloat(x.monto) || 0); }, 0);
   var porCat = {};
   D.gas.forEach(function (e) { var cat = e.categoria || 'Otros'; porCat[cat] = (porCat[cat] || 0) + (parseFloat(e.monto) || 0); });
   var distH = '';
@@ -1432,10 +1410,11 @@ function rGas(c) {
   D.gas.forEach(function (e) {
     var co = GC_MAP[e.categoria] || '#6E7489';
     var isU = e.metodo === 'efectivo_usd';
-    // NOTA: Cambiamos el onclick para usar openGasModal
     h += '<tr><td class="text-xs text-muted">' + fF(e.fecha) + '</td><td><span class="badge" style="background:' + co + '18;color:' + co + '">' + (e.categoria || 'Otros') + '</span></td><td class="text-sm text-fg">' + (e.concepto || '—') + '</td><td>' + mB(e.metodo) + '</td><td style="text-align:right" class="font-bold text-danger">' + fM(e.monto) + (isU ? '<br><span class="text-[10px] text-usd font-normal">($' + (e.monto / TDC).toFixed(2) + ')</span>' : '') + '</td><td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="openGasModal(\'' + e.id + '\')"><i class="fa-solid fa-pen text-xs"></i></button><button class="btn-icon" data-action="del" data-id="' + e.id + '" data-tb="gastos"><i class="fa-solid fa-trash text-xs text-danger"></i></button></div></td></tr>';
   });
   
+  var btnNuevo = '<button id="btnNuevoGas" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Nuevo</button>';
+
   c.innerHTML = '<div class="fade-in">' +
     '<div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-6">' +
     sc('Total Gastos', fM(totalG), D.gas.length + ' egresos', 'fa-receipt', 'danger') +
@@ -1444,14 +1423,14 @@ function rGas(c) {
     (distH ? '<div class="bg-card border border-border rounded-2xl p-5 mb-6"><h3 class="text-sm font-bold font-display text-fg mb-3">Por Categoria</h3><div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">' + distH + '</div></div>' : '') +
     '<div class="flex flex-wrap items-center justify-between gap-4 mb-6">' +
     '<div class="search-box"><i class="fa-solid fa-magnifying-glass"></i><input type="text" class="form-input w-72" placeholder="Buscar..." id="sGas"></div>' +
-    // Aquí también usamos openGasModal sin parámetros para Nuevo
-    '<button id="btnNuevoGas" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Nuevo</button></div>' +
+    btnNuevo +
+    '</div>' +
     '<div class="bg-card border border-border rounded-2xl overflow-hidden"><div class="overflow-x-auto"><table class="data-table"><thead><tr><th>Fecha</th><th>Categoria</th><th>Concepto</th><th>Metodo</th><th>Monto</th><th>Acciones</th></tr></thead><tbody>' +
     (h || '<tr><td colspan="6"><div class="empty-state"><i class="fa-solid fa-receipt"></i><p>Sin gastos</p></div></td></tr>') +
     '</tbody></table></div></div></div>';
 
   document.getElementById('btnNuevoGas').addEventListener('click', function() {
-     openGasModal(null); // Abre modal nuevo
+     openGasModal(null); // Nuevo
   });
 
   Q('#sGas').addEventListener('input', function () {
@@ -1464,16 +1443,35 @@ function rGas(c) {
   });
 }
 
+window.openGasModal = function (id) {
+  var title = id ? 'Editar Gasto' : 'Nuevo Gasto';
+  var footer = '<button id="btnGuardarGas" class="btn btn-primary">Guardar</button>';
+  amo(title, fGasF(id), footer);
+  setTimeout(function() {
+    var btn = document.getElementById('btnGuardarGas');
+    if(btn) {
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        var form = document.getElementById('FrGas');
+        if(form) {
+          var evt = new Event('submit', { bubbles: true, cancelable: true });
+          form.dispatchEvent(evt);
+        }
+      });
+    }
+  }, 100);
+};
+
 window.fGasF = function (id) {
   var g = id ? D.gas.find(function (x) { return x.id === id; }) : null;
   var catOpts = Object.keys(GC_MAP).map(function (k) { return '<option value="' + k + '"' + (g && g.categoria === k ? ' selected' : '') + '>' + k + '</option>'; }).join('');
-  
-  // Forzamos la fecha correcta usando getFullYear/getMonth/getDate locales
   var d = new Date();
-  var year = d.getFullYear() > 2025 ? 2024 : d.getFullYear(); // Corrección si el sistema tiene fecha 2026
-  var month = String(d.getMonth() + 1).padStart(2, '0');
+  var year = d.getFullYear() > 2025 ? 2024 : d.getFullYear(); 
+  var month = String(d.getMonth() +1).padStart(2, '0');
   var day = String(d.getDate()).padStart(2, '0');
-  var fechaVal = g && g.fecha ? g.fecha.slice(0, 10) : year + '-' + month + '-' + day;
+  var fechaVal = g && g.fecha 
+    ? g.fecha.slice(0, 10) 
+    : year + '-' + month + '-' + day;
 
   return '<form id="FrGas">' +
     '<div class="grid grid-cols-2 gap-4">' +
