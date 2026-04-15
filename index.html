@@ -671,7 +671,6 @@ function nav(p) {
   }
   Q('#SB').classList.remove('open');
 }
-/* FIX #7: exponer nav al scope global para los onclick inline */
 window.nav = nav;
 
 function rDash(c) {
@@ -1412,11 +1411,169 @@ function rGas(c) {
     var isU = e.metodo === 'efectivo_usd';
     h += '<tr><td class="text-xs text-muted">' + fF(e.fecha) + '</td><td><span class="badge" style="background:' + co + '18;color:' + co + '">' + (e.categoria || 'Otros') + '</span></td><td class="text-sm text-fg">' + (e.concepto || '—') + '</td><td>' + mB(e.metodo) + '</td><td style="text-align:right" class="font-bold text-danger">' + fM(e.monto) + (isU ? '<br><span class="text-[10px] text-usd font-normal">($' + (e.monto / TDC).toFixed(2) + ')</span>' : '') + '</td><td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="amo(fGasF(\'' + e.id + '\'))"><i class="fa-solid fa-pen text-xs"></i></button><button class="btn-icon" data-action="del" data-id="' + e.id + '" data-tb="gastos"><i class="fa-solid fa-trash text-xs text-danger"></i></button></div></td></tr>';
   });
-  /* FIX #5: corregido — 2 cierres de div despues de </table>, no 3 */
   c.innerHTML = '<div class="fade-in">' +
     '<div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-6">' +
     sc('Total Gastos', fM(totalG), D.gas.length + ' egresos', 'fa-receipt', 'danger') +
     sc('Gastos Mes', fM(gM), '', 'fa-calendar', 'warning') +
     '</div>' +
     (distH ? '<div class="bg-card border border-border rounded-2xl p-5 mb-6"><h3 class="text-sm font-bold font-display text-fg mb-3">Por Categoria</h3><div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">' + distH + '</div></div>' : '') +
-    '<div class="flex flex-wrap
+    '<div class="flex flex-wrap items-center justify-between gap-4 mb-6">' +
+    '<div class="search-box"><i class="fa-solid fa-magnifying-glass"></i><input type="text" class="form-input w-72" placeholder="Buscar..." id="sGas"></div>' +
+    '<button class="btn btn-primary" onclick="amo(fGasF())"><i class="fa-solid fa-plus"></i> Nuevo</button></div>' +
+    '<div class="bg-card border border-border rounded-2xl overflow-hidden"><div class="overflow-x-auto"><table class="data-table"><thead><tr><th>Fecha</th><th>Categoria</th><th>Concepto</th><th>Metodo</th><th>Monto</th><th>Acciones</th></tr></thead><tbody>' +
+    (h || '<tr><td colspan="6"><div class="empty-state"><i class="fa-solid fa-receipt"></i><p>Sin gastos</p></div></td></tr>') +
+    '</tbody></table></div></div></div>';
+  Q('#sGas').addEventListener('input', function () {
+    var q = this.value.toLowerCase();
+    c.querySelector('tbody').innerHTML = D.gas.filter(function (e) {
+      return ((e.concepto || '') + ' ' + (e.categoria || '')).toLowerCase().indexOf(q) >= 0;
+    }).map(function (e) {
+      return '<tr><td class="text-xs text-muted">' + fF(e.fecha) + '</td><td>' + mB(e.metodo) + '</td><td style="text-align:right" class="font-bold text-danger">' + fM(e.monto) + '</td><td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="amo(fGasF(\'' + e.id + '\'))"><i class="fa-solid fa-pen text-xs"></i></button></div></td></tr>';
+    }).join('') || '<tr><td colspan="6"><div class="empty-state"><p>Sin resultados</p></div></td></tr>';
+  });
+}
+
+window.fGasF = function (id) {
+  var g = id ? D.gas.find(function (x) { return x.id === id; }) : null;
+  var catOpts = Object.keys(GC_MAP).map(function (k) { return '<option value="' + k + '"' + (g && g.categoria === k ? ' selected' : '') + '>' + k + '</option>'; }).join('');
+  return '<form id="FrGas">' +
+    '<div class="grid grid-cols-2 gap-4">' +
+    '<div class="form-group"><label class="form-label">Fecha</label><input type="date" class="form-input" name="fecha" value="' + (g && g.fecha ? g.fecha.slice(0, 10) : today()) + '"></div>' +
+    '<div class="form-group"><label class="form-label">Categoria</label><select class="form-input" name="categoria">' + catOpts + '</select></div>' +
+    '</div>' +
+    GF('text', 'Concepto', g ? g.concepto : '', 'concepto') +
+    '<div class="grid grid-cols-2 gap-4">' +
+    GF('number', 'Monto', g ? g.monto : 0, 'monto') +
+    '<div class="form-group"><label class="form-label">Metodo</label><select class="form-input" name="metodo"><option value="efectivo"' + (g && g.metodo === 'efectivo' ? ' selected' : '') + '>Efectivo</option><option value="efectivo_usd"' + (g && g.metodo === 'efectivo_usd' ? ' selected' : '') + '>USD</option><option value="tarjeta"' + (g && g.metodo === 'tarjeta' ? ' selected' : '') + '>Tarjeta</option><option value="transferencia"' + (g && g.metodo === 'transferencia' ? ' selected' : '') + '>Transferencia</option></select></div>' +
+    '</div>' +
+    GST('Notas', g ? g.notas : '', 'notas') +
+    '<input type="hidden" name="_edit_id" value="' + (id || '') + '">' +
+    '</form>';
+};
+
+document.addEventListener('submit', function (e) {
+  if (e.target.id !== 'FrGas') return;
+  e.preventDefault();
+  var fd = new FormData(e.target);
+  var id = fd.get('_edit_id');
+  var d = {
+    fecha: fd.get('fecha') || null,
+    categoria: fd.get('categoria'),
+    concepto: fd.get('concepto'),
+    monto: parseFloat(fd.get('monto')) || 0,
+    metodo: fd.get('metodo'),
+    notas: fd.get('notas')
+  };
+  var p = id ? S.from('gastos').update(d).eq('id', id) : S.from('gastos').insert([d]);
+  p.then(function (r) {
+    if (r.error) { toast(r.error.message, 'error'); return; }
+    toast(id ? 'Actualizado' : 'Registrado');
+    cmo(); rl().then(function () { nav('gastos'); });
+  });
+});
+
+function rPag(c) {
+  var now = new Date();
+  var mA = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+  var pM = D.pag.filter(function (x) { return x.fecha && x.fecha.startsWith(mA); }).reduce(function (s, x) { return s + (parseFloat(x.monto) || 0); }, 0);
+  var totalP = D.pag.reduce(function (s, x) { return s + (parseFloat(x.monto) || 0); }, 0);
+  var h = '';
+  D.pag.forEach(function (p) {
+    var d = gD(p.diagnostico_id);
+    var v = d ? gV(d.vehiculo_id) : null;
+    var cl = v ? gC(v.cliente_id) : null;
+    h += '<tr>' +
+      '<td class="text-xs text-muted">' + fF(p.fecha) + '</td>' +
+      '<td><span class="text-xs font-semibold text-fg">#' + String(p.diagnostico_id).slice(-4) + '</span><br><span class="text-[11px] text-muted">' + (v ? v.marca + ' ' + v.modelo : '—') + '</span></td>' +
+      '<td class="text-xs text-muted">' + (cl ? cl.nombre + ' ' + cl.apellido : '—') + '</td>' +
+      '<td>' + mB(p.metodo) + '</td>' +
+      '<td style="text-align:right" class="font-bold text-accent">' + fM(p.monto) + '</td>' +
+      '<td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="amo(fPagF(\'' + p.diagnostico_id + '\'))"><i class="fa-solid fa-plus text-xs text-accent"></i></button></div></td>' +
+      '</tr>';
+  });
+  c.innerHTML = '<div class="fade-in">' +
+    '<div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-6">' +
+    sc('Total Cobrado', fM(totalP), D.pag.length + ' pagos', 'fa-coins', 'accent') +
+    sc('Cobrado Mes', fM(pM), '', 'fa-calendar', 'info') +
+    '</div>' +
+    '<div class="bg-card border border-border rounded-2xl overflow-hidden"><div class="overflow-x-auto"><table class="data-table"><thead><tr><th>Fecha</th><th>Orden</th><th>Cliente</th><th>Metodo</th><th>Monto</th><th>Acciones</th></tr></thead><tbody>' +
+    (h || '<tr><td colspan="6"><div class="empty-state"><i class="fa-solid fa-coins"></i><p>Sin pagos</p></div></td></tr>') +
+    '</tbody></table></div></div></div>';
+}
+
+window.fPagF = function (did) {
+  var d = did ? gD(did) : null;
+  var v = d ? gV(d.vehiculo_id) : null;
+  var cl = v ? gC(v.cliente_id) : null;
+  var selVid = d ? d.vehiculo_id : '';
+  var vo = D.dg.map(function (dg) {
+    var vv = gV(dg.vehiculo_id);
+    var ccl = vv ? gC(vv.cliente_id) : null;
+    return '<option value="' + dg.id + '"' + (dg.id === did ? ' selected' : '') + '>#' + String(dg.id).slice(-4) + ' - ' + (vv ? vv.marca + ' ' + vv.modelo : '') + ' (' + (ccl ? ccl.nombre : '') + ')</option>';
+  }).join('');
+  return '<form id="FrPag">' +
+    '<div class="form-group"><label class="form-label">Orden de Diagnostico</label><select class="form-input" name="diagnostico_id" required id="pDg"><option value="">Seleccionar...</option>' + vo + '</select></div>' +
+    (d ? '<div class="p-3 rounded-xl bg-surface mb-4"><p class="text-xs text-muted">Cliente: <span class="text-fg font-semibold">' + (cl ? cl.nombre + ' ' + cl.apellido : '—') + '</span></p><p class="text-xs text-muted">Vehiculo: <span class="text-fg font-semibold">' + (v ? v.marca + ' ' + v.modelo : '—') + '</span></p><p class="text-xs text-muted mt-1">Total Orden: <span class="text-accent font-bold">' + fM(d.costo) + '</span></p></div>' : '') +
+    '<div class="grid grid-cols-2 gap-4">' +
+    '<div class="form-group"><label class="form-label">Fecha</label><input type="date" class="form-input" name="fecha" value="' + today() + '"></div>' +
+    '<div class="form-group"><label class="form-label">Metodo</label><select class="form-input" name="metodo"><option value="efectivo">Efectivo</option><option value="efectivo_usd">USD</option><option value="tarjeta">Tarjeta</option><option value="transferencia">Transferencia</option></select></div>' +
+    '</div>' +
+    GF('number', 'Monto', 0, 'monto') +
+    '<input type="hidden" name="_edit_id" value="">' +
+    '</form>';
+};
+
+document.addEventListener('submit', function (e) {
+  if (e.target.id !== 'FrPag') return;
+  e.preventDefault();
+  var fd = new FormData(e.target);
+  var did = fd.get('diagnostico_id');
+  if (!did) { toast('Selecciona una orden', 'error'); return; }
+  var d = {
+    diagnostico_id: did,
+    fecha: fd.get('fecha') || null,
+    metodo: fd.get('metodo'),
+    monto: parseFloat(fd.get('monto')) || 0
+  };
+  S.from('pagos').insert([d]).then(function (r) {
+    if (r.error) { toast(r.error.message, 'error'); return; }
+    toast('Pago registrado');
+    cmo();
+    rl().then(function () {
+      if (window.PA === 'pagos' || window.PA === 'diagnosticos') nav(window.PA);
+      else nav('pagos');
+    });
+  });
+});
+
+function rRep(c) {
+  var now = new Date();
+  var mA = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+  var ing = D.pag.filter(function (x) { return x.fecha && x.fecha.startsWith(mA); }).reduce(function (s, x) { return s + (parseFloat(x.monto) || 0); }, 0);
+  var eg = D.gas.filter(function (x) { return x.fecha && x.fecha.startsWith(mA); }).reduce(function (s, x) { return s + (parseFloat(x.monto) || 0); }, 0);
+  var util = ing - eg;
+  var utilColor = util >= 0 ? 'text-accent' : 'text-danger';
+  c.innerHTML = '<div class="fade-in">' +
+    '<div class="text-center mb-8"><h3 class="text-xl font-bold font-display text-fg">Resumen Financiero: ' + now.toLocaleDateString('es-MX', { month: 'long', year: 'numeric' }) + '</h3></div>' +
+    '<div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">' +
+    '<div class="stat-card text-center"><p class="text-xs text-muted uppercase tracking-wider font-semibold mb-2">Ingresos</p><p class="text-3xl font-extrabold font-display text-accent">' + fM(ing) + '</p></div>' +
+    '<div class="stat-card text-center"><p class="text-xs text-muted uppercase tracking-wider font-semibold mb-2">Egresos</p><p class="text-3xl font-extrabold font-display text-danger">' + fM(eg) + '</p></div>' +
+    '<div class="stat-card text-center"><p class="text-xs text-muted uppercase tracking-wider font-semibold mb-2">Utilidad Neta</p><p class="text-3xl font-extrabold font-display ' + utilColor + '">' + fM(util) + '</p></div>' +
+    '</div>' +
+    '<div class="bg-card border border-border rounded-2xl p-6"><h3 class="text-sm font-bold font-display text-fg mb-4">Notas</h3><p class="text-xs text-muted">Este reporte considera solo los movimientos del mes actual (' + mA + ').</p></div></div>';
+}
+
+function bootApp() {
+  S = window._sb;
+  Q('#AM').style.display = 'block';
+  Q('#SS').style.display = 'none';
+  Q('#UserEmail').textContent = window._user.email;
+  rl().then(function () { nav('dashboard'); });
+}
+window.bootApp = bootApp;
+
+} catch (ex) { console.error(ex); }
+})();
+</script>
+</body>
+</html>
