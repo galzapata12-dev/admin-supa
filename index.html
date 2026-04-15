@@ -1539,6 +1539,20 @@ function rPag(c) {
       '<td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="window.amo(\'Registrar Pago\', window.fPagF(\'' + p.diagnostico_id + '\'), window.sb(\'FrPag\'))"><i class="fa-solid fa-plus text-xs text-accent"></i></button></div></td>' +
       '</tr>';
   });
+  
+  // AQUI ESTA EL CAMBIO: Agregué el botón "Nuevo Pago" en el encabezado
+  c.innerHTML = '<div class="fade-in">' +
+    '<div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-6">' +
+    sc('Total Cobrado', fM(totalP), D.pag.length + ' pagos', 'fa-coins', 'accent') +
+    sc('Cobrado Mes', fM(pM), '', 'fa-calendar', 'info') +
+    '</div>' +
+    '<div class="flex flex-wrap items-center justify-between gap-4 mb-6">' +
+    '<button class="btn btn-primary" onclick="window.amo(\'Registrar Pago\', window.fPagF(), window.sb(\'FrPag\'))"><i class="fa-solid fa-plus"></i> Nuevo Pago</button>' +
+    '</div>' +
+    '<div class="bg-card border border-border rounded-2xl overflow-hidden"><div class="overflow-x-auto"><table class="data-table"><thead><tr><th>Fecha</th><th>Orden</th><th>Cliente</th><th>Metodo</th><th>Monto</th><th>Acciones</th></tr></thead><tbody>' +
+    (h || '<tr><td colspan="6"><div class="empty-state"><i class="fa-solid fa-coins"></i><p>Sin pagos</p></div></td></tr>') +
+    '</tbody></table></div></div></div>';
+}
   c.innerHTML = '<div class="fade-in">' +
     '<div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-6">' +
     sc('Total Cobrado', fM(totalP), D.pag.length + ' pagos', 'fa-coins', 'accent') +
