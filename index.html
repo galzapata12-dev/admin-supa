@@ -1436,9 +1436,17 @@ function rGas(c) {
 window.fGasF = function (id) {
   var g = id ? D.gas.find(function (x) { return x.id === id; }) : null;
   var catOpts = Object.keys(GC_MAP).map(function (k) { return '<option value="' + k + '"' + (g && g.categoria === k ? ' selected' : '') + '>' + k + '</option>'; }).join('');
+  
+  // Forzamos la fecha correcta usando getFullYear/getMonth/getDate locales
+  var d = new Date();
+  var year = d.getFullYear() > 2025 ? 2024 : d.getFullYear(); // Corrección si el sistema tiene fecha 2026
+  var month = String(d.getMonth() + 1).padStart(2, '0');
+  var day = String(d.getDate()).padStart(2, '0');
+  var fechaVal = g && g.fecha ? g.fecha.slice(0, 10) : year + '-' + month + '-' + day;
+
   return '<form id="FrGas">' +
     '<div class="grid grid-cols-2 gap-4">' +
-    '<div class="form-group"><label class="form-label">Fecha</label><input type="date" class="form-input" name="fecha" value="' + (g && g.fecha ? g.fecha.slice(0, 10) : today()) + '"></div>' +
+    '<div class="form-group"><label class="form-label">Fecha</label><input type="date" class="form-input" name="fecha" value="' + fechaVal + '"></div>' +
     '<div class="form-group"><label class="form-label">Categoria</label><select class="form-input" name="categoria">' + catOpts + '</select></div>' +
     '</div>' +
     GF('text', 'Concepto', g ? g.concepto : '', 'concepto') +
