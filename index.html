@@ -407,13 +407,21 @@ function vKm(id) { return D.km.filter(function (x) { return x.vehiculo_id === id
 function vPag(did) { return D.pag.filter(function (x) { return x.diagnostico_id === did; }); }
 function ini(n, a) { return ((n ? n[0] : '') + (a ? a[0] : '')).toUpperCase(); }
 
+// --- SEGURIDAD: Función para escapar caracteres HTML ---
+function esc(str) {
+  if (str == null) return '';
+  return String(str).replace(/[&<>"']/g, function (m) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
+  });
+}
+
 function GF(type, label, value, name) {
   return '<div class="form-group"><label class="form-label">' + label + '</label>' +
-    '<input type="' + type + '" class="form-input" name="' + name + '" value="' + (value != null ? value : '') + '"></div>';
+    '<input type="' + type + '" class="form-input" name="' + name + '" value="' + esc(value != null ? value : '') + '"></div>';
 }
 function GST(label, value, name) {
   return '<div class="form-group"><label class="form-label">' + label + '</label>' +
-    '<textarea class="form-input" name="' + name + '" rows="2">' + (value || '') + '</textarea></div>';
+    '<textarea class="form-input" name="' + name + '" rows="2">' + esc(value || '') + '</textarea></div>';
 }
 function sc(label, value, sub, icon, color) {
   var gc = { accent: '#10B981', info: '#06B6D4', danger: '#EF4444', warning: '#F59E0B', purple: '#8B5CF6' };
@@ -460,10 +468,9 @@ function cTag(c) {
     : '<span class="ctag cfe"><i class="fa-solid fa-calendar"></i> Fecha</span>';
 }
 
-// --- CORRECCIÓN PRINCIPAL DE MODALES ---
 function amo(title, body, footer) {
   Q('#MTt').textContent = title;
-  Q('#MBd').innerHTML = body; // AQUI ESTABA EL ERROR
+  Q('#MBd').innerHTML = body;
   Q('#MFt').innerHTML = footer || '';
   Q('#MO').classList.add('active');
 }
@@ -743,10 +750,10 @@ function rCl(c) {
     var n = vCl(cl.id).length;
     h += '<tr><td><div class="flex items-center gap-3">' +
       '<div class="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center text-accent font-display font-bold text-sm">' + ini(cl.nombre, cl.apellido) + '</div>' +
-      '<div><p class="text-sm font-semibold text-fg">' + cl.nombre + ' ' + cl.apellido + '</p>' +
-      '<p class="text-[11px] text-muted">' + cl.telefono + '</p></div></div></td>' +
-      '<td class="text-xs text-muted">' + (cl.email || '—') + '</td>' +
-      '<td class="text-xs text-muted">' + (cl.cedula_rif || '—') + '</td>' +
+      '<div><p class="text-sm font-semibold text-fg">' + esc(cl.nombre) + ' ' + esc(cl.apellido) + '</p>' +
+      '<p class="text-[11px] text-muted">' + esc(cl.telefono) + '</p></div></div></td>' +
+      '<td class="text-xs text-muted">' + (cl.email ? esc(cl.email) : '—') + '</td>' +
+      '<td class="text-xs text-muted">' + (cl.cedula_rif ? esc(cl.cedula_rif) : '—') + '</td>' +
       '<td><span class="badge bg-accent/10 text-accent">' + n + '</span></td>' +
       '<td><div class="flex gap-1 justify-end">' +
       '<button class="btn-icon" onclick="amo(fClF(\'' + cl.id + '\'))"><i class="fa-solid fa-pen text-xs"></i></button>' +
@@ -766,8 +773,8 @@ function rCl(c) {
       return (cl.nombre + ' ' + cl.apellido + ' ' + cl.telefono).toLowerCase().indexOf(q) >= 0;
     }).map(function (cl) {
       var n = vCl(cl.id).length;
-      return '<tr><td><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center text-accent font-display font-bold text-sm">' + ini(cl.nombre, cl.apellido) + '</div><div class="text-sm font-semibold text-fg">' + cl.nombre + ' ' + cl.apellido + '</div></div></td>' +
-      '<td class="text-xs text-muted">' + cl.telefono + '</td><td><span class="badge bg-accent/10 text-accent">' + n + '</span></td>' +
+      return '<tr><td><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center text-accent font-display font-bold text-sm">' + ini(cl.nombre, cl.apellido) + '</div><div class="text-sm font-semibold text-fg">' + esc(cl.nombre) + ' ' + esc(cl.apellido) + '</div></div></td>' +
+      '<td class="text-xs text-muted">' + esc(cl.telefono) + '</td><td><span class="badge bg-accent/10 text-accent">' + n + '</span></td>' +
       '<td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="amo(fClF(\'' + cl.id + '\'))"><i class="fa-solid fa-pen text-xs"></i></button>' +
       '<button class="btn-icon" data-action="del" data-id="' + cl.id + '" data-tb="clientes"><i class="fa-solid fa-trash text-xs text-danger"></i></button></div></td></tr>';
     }).join('') || '<tr><td colspan="5"><div class="empty-state"><p>Sin resultados</p></div></td></tr>';
@@ -824,9 +831,9 @@ function rVh(c) {
       : peor === 'proximo' ? '<span class="badge b-alta">Proximo</span>'
       : '<span class="badge b-normal">OK</span>';
     h += '<tr>' +
-      '<td class="font-semibold">' + v.marca + ' ' + v.modelo + (v.anio ? ' (' + v.anio + ')' : '') + '</td>' +
-      '<td><span class="font-mono text-xs px-2 py-1 rounded-lg bg-accent/10 text-accent font-bold">' + v.placa + '</span></td>' +
-      '<td class="text-xs text-muted">' + (cl ? cl.nombre + ' ' + cl.apellido : '—') + '</td>' +
+      '<td class="font-semibold">' + esc(v.marca) + ' ' + esc(v.modelo) + (v.anio ? ' (' + v.anio + ')' : '') + '</td>' +
+      '<td><span class="font-mono text-xs px-2 py-1 rounded-lg bg-accent/10 text-accent font-bold">' + esc(v.placa) + '</span></td>' +
+      '<td class="text-xs text-muted">' + (cl ? esc(cl.nombre) + ' ' + esc(cl.apellido) : '—') + '</td>' +
       '<td class="text-xs font-semibold">' + (v.kilometraje ? v.kilometraje.toLocaleString() + ' km' : '—') + '</td>' +
       '<td>' + badge + '</td>' +
       '<td><div class="flex gap-1 justify-end">' +
@@ -848,9 +855,9 @@ function rVh(c) {
       return (v.marca + ' ' + v.modelo + ' ' + v.placa).toLowerCase().indexOf(q) >= 0;
     }).map(function (v) {
       var cl = gC(v.cliente_id);
-      return '<tr><td class="font-semibold">' + v.marca + ' ' + v.modelo + '</td>' +
-        '<td><span class="font-mono text-xs px-2 py-1 rounded-lg bg-accent/10 text-accent font-bold">' + v.placa + '</span></td>' +
-        '<td class="text-xs text-muted">' + (cl ? cl.nombre : '') + '</td>' +
+      return '<tr><td class="font-semibold">' + esc(v.marca) + ' ' + esc(v.modelo) + '</td>' +
+        '<td><span class="font-mono text-xs px-2 py-1 rounded-lg bg-accent/10 text-accent font-bold">' + esc(v.placa) + '</span></td>' +
+        '<td class="text-xs text-muted">' + (cl ? esc(cl.nombre) : '') + '</td>' +
         '<td>' + (v.kilometraje ? v.kilometraje.toLocaleString() + ' km' : '—') + '</td><td>—</td>' +
         '<td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="amo(fVhF(\'' + v.id + '\'))"><i class="fa-solid fa-pen text-xs"></i></button>' +
         '<button class="btn-icon" data-action="del" data-id="' + v.id + '" data-tb="vehiculos"><i class="fa-solid fa-trash text-xs text-danger"></i></button></div></td></tr>';
@@ -861,7 +868,7 @@ function rVh(c) {
 window.fVhF = function (id) {
   var v = id ? gV(id) : null;
   var opts = D.cl.map(function (cl) {
-    return '<option value="' + cl.id + '"' + (v && cl.id === v.cliente_id ? ' selected' : '') + '>' + cl.nombre + ' ' + cl.apellido + '</option>';
+    return '<option value="' + cl.id + '"' + (v && cl.id === v.cliente_id ? ' selected' : '') + '>' + esc(cl.nombre + ' ' + cl.apellido) + '</option>';
   }).join('');
   return '<form id="FrVh">' +
     '<div class="form-group"><label class="form-label">Propietario *</label><select class="form-input" name="cliente_id" required><option value="">Seleccionar...</option>' + opts + '</select></div>' +
@@ -909,7 +916,7 @@ function rDg(c) {
       '<td class="font-semibold">' + (v ? v.marca + ' ' + v.modelo : '—') + '<br><span class="text-[11px] text-muted">' + (v ? v.placa : '') + '</span></td>' +
       '<td class="text-xs text-muted">' + (cl ? cl.nombre + ' ' + cl.apellido : '—') + '</td>' +
       '<td>' + (d.tipo === 'diagnostico' ? '<span class="badge bg-info/10 text-info">Diag</span>' : '<span class="badge bg-purple/10 text-purple">Rep</span>') + '</td>' +
-      '<td class="text-xs text-muted" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (d.diagnostico || '—') + '</td>' +
+      '<td class="text-xs text-muted" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (d.diagnostico ? esc(d.diagnostico) : '—') + '</td>' +
       '<td>' + eB(d.estado) + '</td>' +
       '<td class="font-semibold">' + fM(d.costo) + '</td>' +
       '<td><div class="flex gap-1 justify-end">' +
@@ -944,7 +951,7 @@ window.fDgF = function (id, vid) {
   var selVid = vid || (d ? d.vehiculo_id : '') || '';
   var vo = D.vh.map(function (v) {
     var cl = gC(v.cliente_id);
-    return '<option value="' + v.id + '" data-cli="' + (cl ? cl.id : '') + '"' + (v.id === selVid ? ' selected' : '') + '>' + v.marca + ' ' + v.modelo + ' (' + v.placa + ')</option>';
+    return '<option value="' + v.id + '" data-cli="' + (cl ? cl.id : '') + '"' + (v.id === selVid ? ' selected' : '') + '>' + esc(v.marca + ' ' + v.modelo + ' (' + v.placa + ') - ' + (cl ? cl.nombre : '')) + '</option>';
   }).join('');
   var feVal = d && d.fecha_entrada ? new Date(d.fecha_entrada).toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16);
   var fsVal = d && d.fecha_salida ? new Date(d.fecha_salida).toISOString().slice(0, 16) : '';
@@ -955,7 +962,7 @@ window.fDgF = function (id, vid) {
     '<div class="form-group"><label class="form-label">Estado</label><select class="form-input" name="estado"><option value="pendiente"' + (d && d.estado === 'pendiente' ? ' selected' : '') + '>Pendiente</option><option value="en_proceso"' + (d && d.estado === 'en_proceso' ? ' selected' : '') + '>En Proceso</option><option value="completado"' + (d && d.estado === 'completado' ? ' selected' : '') + '>Completado</option><option value="cancelado"' + (d && d.estado === 'cancelado' ? ' selected' : '') + '>Cancelado</option></select></div>' +
     '<div class="form-group"><label class="form-label">Costo</label><input type="number" class="form-input" name="costo" value="' + (d ? d.costo : 0) + '" step="0.01" min="0"></div>' +
     '<div class="form-group"><label class="form-label">Prioridad</label><select class="form-input" name="prioridad"><option value="normal"' + (d && d.prioridad === 'normal' ? ' selected' : '') + '>Normal</option><option value="alta"' + (d && d.prioridad === 'alta' ? ' selected' : '') + '>Alta</option><option value="urgente"' + (d && d.prioridad === 'urgente' ? ' selected' : '') + '>Urgente</option></select></div>' +
-    '<div class="form-group"><label class="form-label">Mecanico</label><input type="text" class="form-input" name="mecanico" value="' + (d ? d.mecanico : '') + '"></div>' +
+    '<div class="form-group"><label class="form-label">Mecanico</label><input type="text" class="form-input" name="mecanico" value="' + (d ? esc(d.mecanico) : '') + '"></div>' +
     '</div>' +
     '<div class="grid grid-cols-2 gap-4 mt-2">' +
     GF('datetime-local', 'Fecha Entrada', feVal, 'fecha_entrada') +
@@ -1023,15 +1030,15 @@ async function mDDgH(id) {
     '<div class="flex gap-2 flex-wrap">' +
     (d.tipo === 'diagnostico' ? '<span class="badge bg-info/10 text-info">DIAGNOSTICO</span>' : '<span class="badge bg-purple/10 text-purple">REPARACION</span>') +
     eB(d.estado) + ePri(d.prioridad || 'normal') + '</div>' +
-    (d.mecanico ? '<p class="text-xs text-muted"><i class="fa-solid fa-wrench mr-1"></i>' + d.mecanico + '</p>' : '') +
+    (d.mecanico ? '<p class="text-xs text-muted"><i class="fa-solid fa-wrench mr-1"></i>' + esc(d.mecanico) + '</p>' : '') +
     '<div class="grid grid-cols-2 gap-4">' +
-    '<div class="p-4 rounded-xl bg-surface"><p class="text-[10px] text-muted uppercase tracking-wider font-display mb-1">Cliente</p><p class="text-sm font-semibold">' + (cl ? cl.nombre + ' ' + cl.apellido : '—') + '</p>' + (cl && cl.telefono ? '<p class="text-xs text-muted mt-1">' + cl.telefono + '</p>' : '') + '</div>' +
+    '<div class="p-4 rounded-xl bg-surface"><p class="text-[10px] text-muted uppercase tracking-wider font-display mb-1">Cliente</p><p class="text-sm font-semibold">' + (cl ? esc(cl.nombre) + ' ' + esc(cl.apellido) : '—') + '</p>' + (cl && cl.telefono ? '<p class="text-xs text-muted mt-1">' + esc(cl.telefono) + '</p>' : '') + '</div>' +
     '<div class="p-4 rounded-xl bg-surface"><p class="text-[10px] text-muted uppercase tracking-wider font-display mb-1">Costo</p><p class="text-lg font-bold text-accent font-display">' + fM(d.costo) + '</p></div>' +
     '<div class="p-4 rounded-xl bg-surface"><p class="text-[10px] text-muted uppercase tracking-wider font-display mb-1">Pagado</p><p class="text-lg font-bold text-accent font-display">' + fM(tp) + '</p><p class="text-xs font-bold mt-1 ' + (saldo > 0 ? 'text-danger' : 'text-accent') + '">' + salH + '</p></div>' +
     '<div class="p-4 rounded-xl bg-surface"><p class="text-[10px] text-muted uppercase tracking-wider font-display mb-1">Fechas</p><p class="text-xs font-semibold">' + fFH(d.fecha_entrada) + '</p>' + (d.fecha_salida ? '<p class="text-xs text-accent mt-1">' + fFH(d.fecha_salida) + '</p>' : '') + '</div>' +
     '</div>' +
-    (d.diagnostico ? '<div class="p-3 rounded-xl bg-surface"><p class="text-[10px] text-muted uppercase tracking-wider font-display mb-1">Diagnostico</p><p class="text-xs text-muted">' + d.diagnostico + '</p></div>' : '') +
-    (d.reparacion_realizada ? '<div class="p-3 rounded-xl bg-surface"><p class="text-[10px] text-muted uppercase tracking-wider font-display mb-1">Reparacion</p><p class="text-xs text-muted">' + d.reparacion_realizada + '</p></div>' : '') +
+    (d.diagnostico ? '<div class="p-3 rounded-xl bg-surface"><p class="text-[10px] text-muted uppercase tracking-wider font-display mb-1">Diagnostico</p><p class="text-xs text-muted">' + esc(d.diagnostico) + '</p></div>' : '') +
+    (d.reparacion_realizada ? '<div class="p-3 rounded-xl bg-surface"><p class="text-[10px] text-muted uppercase tracking-wider font-display mb-1">Reparacion</p><p class="text-xs text-muted">' + esc(d.reparacion_realizada) + '</p></div>' : '') +
     (pH ? '<div class="p-3 rounded-xl bg-surface"><p class="text-[10px] text-muted uppercase tracking-wider font-display mb-2">Pagos</p>' + pH + '</div>' : '') +
     '</div>',
     '<button class="btn btn-secondary" onclick="cmo()">Cerrar</button>' +
@@ -1049,9 +1056,9 @@ function rKm(c) {
     var cl = gC(v.cliente_id);
     var es = calcKm(sk);
     h += '<tr>' +
-      '<td class="font-semibold">' + v.marca + ' ' + v.modelo + '<br><span class="text-[11px] text-muted">' + v.placa + '</span></td>' +
-      '<td class="text-xs text-muted">' + (cl ? cl.nombre + ' ' + cl.apellido : '—') + '</td>' +
-      '<td>' + sk.tipo_servicio + '</td>' +
+      '<td class="font-semibold">' + esc(v.marca) + ' ' + esc(v.modelo) + '<br><span class="text-[11px] text-muted">' + esc(v.placa) + '</span></td>' +
+      '<td class="text-xs text-muted">' + (cl ? esc(cl.nombre) + ' ' + esc(cl.apellido) : '—') + '</td>' +
+      '<td>' + esc(sk.tipo_servicio) + '</td>' +
       '<td>' + cTag(es.cond) + '</td>' +
       '<td><div class="flex items-center gap-2"><div class="progress-bar flex-1"><div class="progress-fill" style="width:' + es.pct + '%;background:' + es.col + '"></div></div><span class="text-[11px] font-bold" style="color:' + es.col + '">' + es.pct + '%</span></div></td>' +
       '<td class="text-xs">' + (es.cond === 'km' ? es.kmR.toLocaleString() + ' km' : es.diR + ' dias') + '</td>' +
@@ -1077,7 +1084,7 @@ function rKm(c) {
     }).map(function (sk) {
       var v = gV(sk.vehiculo_id);
       var es = calcKm(sk);
-      return '<tr><td class="font-semibold">' + v.marca + ' ' + v.modelo + '</td><td class="text-xs text-muted">' + (gC(v.cliente_id) ? gC(v.cliente_id).nombre : '') + '</td><td>' + sk.tipo_servicio + '</td><td>' + kmB(es) + '</td><td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="amo(fKmF(\'' + sk.id + '\'))"><i class="fa-solid fa-pen text-xs"></i></button></div></td></tr>';
+      return '<tr><td class="font-semibold">' + esc(v.marca) + ' ' + esc(v.modelo) + '</td><td class="text-xs text-muted">' + (gC(v.cliente_id) ? esc(gC(v.cliente_id).nombre) : '') + '</td><td>' + esc(sk.tipo_servicio) + '</td><td>' + kmB(es) + '</td><td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="amo(fKmF(\'' + sk.id + '\'))"><i class="fa-solid fa-pen text-xs"></i></button></div></td></tr>';
     }).join('') || '<tr><td colspan="9"><div class="empty-state"><p>Sin resultados</p></div></td></tr>';
   });
 }
@@ -1085,7 +1092,7 @@ function rKm(c) {
 window.fKmF = function (id) {
   var sk = id ? D.km.find(function (x) { return x.id === id; }) : null;
   var vo = D.vh.map(function (v) {
-    return '<option value="' + v.id + '"' + (sk && v.id === sk.vehiculo_id ? ' selected' : '') + '>' + v.marca + ' ' + v.modelo + ' (' + v.placa + ')</option>';
+    return '<option value="' + v.id + '"' + (sk && v.id === sk.vehiculo_id ? ' selected' : '') + '>' + esc(v.marca + ' ' + v.modelo + ' (' + v.placa + ')') + '</option>';
   }).join('');
   return '<form id="FrKm">' +
     '<div class="form-group"><label class="form-label">Vehiculo *</label><select class="form-input" name="vehiculo_id" required><option value="">Seleccionar...</option>' + vo + '</select></div>' +
@@ -1141,13 +1148,13 @@ function rHU(c) {
   ds.forEach(function (d) {
     dsH += '<div class="tli td"><div class="flex justify-between"><div>' +
       (d.tipo === 'diagnostico' ? '<span class="badge bg-info/10 text-info text-[10px]">DIAG</span>' : '<span class="badge bg-purple/10 text-purple text-[10px]">REP</span>') + ' ' + eB(d.estado) +
-      '<p class="text-xs font-semibold text-fg mt-1">' + (d.diagnostico || '—') + '</p></div>' +
+      '<p class="text-xs font-semibold text-fg mt-1">' + (d.diagnostico ? esc(d.diagnostico) : '—') + '</p></div>' +
       '<div class="text-right"><p class="text-sm font-bold text-accent">' + fM(d.costo) + '</p><p class="text-[11px] text-muted mt-1">' + fFH(d.fecha_entrada) + '</p></div></div></div>';
   });
   var ksH = '';
   ks.forEach(function (sk) {
     var es = calcKm(sk);
-    ksH += '<div class="tli tk"><div class="flex justify-between"><div><span class="text-xs font-semibold">' + sk.tipo_servicio + '</span> ' + kmB(es) + cTag(es.cond) +
+    ksH += '<div class="tli tk"><div class="flex justify-between"><div><span class="text-xs font-semibold">' + esc(sk.tipo_servicio) + '</span> ' + kmB(es) + cTag(es.cond) +
       '<p class="text-[11px] text-muted mt-1">Intervalo: ' + (sk.intervalo_km || 0).toLocaleString() + ' km / ' + (sk.intervalo_meses || 0) + ' meses</p></div>' +
       '<div class="text-right"><p class="text-[11px] text-muted">Prox: ' + sk.km_proximo_servicio.toLocaleString() + ' km</p><p class="text-[11px] font-semibold mt-1" style="color:' + es.col + '">' + (es.cond === 'km' ? es.kmR.toLocaleString() + ' km' : es.diR + ' dias') + '</p></div></div></div>';
   });
@@ -1155,7 +1162,7 @@ function rHU(c) {
     '<div class="flex flex-wrap items-center justify-between gap-4 mb-6">' +
     '<button class="btn btn-sm btn-secondary" onclick="nav(\'vehiculos\')"><i class="fa-solid fa-arrow-left"></i> Volver</button>' +
     '<div class="info-bar"><div class="w-10 h-10 rounded-xl bg-accent/15 flex items-center justify-center text-accent font-display font-bold">' + (v ? v.marca.charAt(0) : '') + '</div>' +
-    '<div><p class="text-sm font-bold text-fg">' + (v ? v.marca + ' ' + v.modelo : '—') + '</p><p class="text-xs text-muted">' + (v ? v.placa : '') + ' — ' + (cl ? cl.nombre + ' ' + cl.apellido : '') + (v && v.kilometraje ? ' — ' + v.kilometraje.toLocaleString() + ' km' : '') + '</p></div></div></div>' +
+    '<div><p class="text-sm font-bold text-fg">' + (v ? esc(v.marca) + ' ' + esc(v.modelo) : '—') + '</p><p class="text-xs text-muted">' + (v ? esc(v.placa) : '') + ' — ' + (cl ? esc(cl.nombre) + ' ' + esc(cl.apellido) : '') + (v && v.kilometraje ? ' — ' + v.kilometraje.toLocaleString() + ' km' : '') + '</p></div></div></div>' +
     '<div class="grid grid-cols-3 gap-4 mb-6">' +
     '<div class="stat-card text-center"><p class="text-2xl font-extrabold font-display text-info">' + ds.length + '</p><p class="text-[11px] text-muted">Diagnosticos</p></div>' +
     '<div class="stat-card text-center"><p class="text-2xl font-extrabold font-display text-accent">' + ks.length + '</p><p class="text-[11px] text-muted">Mantenimientos</p></div>' +
@@ -1170,7 +1177,7 @@ function rCo(c) {
   var h = '';
   D.co.forEach(function (cm) {
     var cl = gC(cm.cliente_id);
-    h += '<tr><td>' + tI(cm.tipo) + '</td><td class="font-semibold">' + (cl ? cl.nombre + ' ' + cl.apellido : '—') + '</td><td class="text-xs text-muted">' + (cm.asunto || '—') + '</td><td class="text-xs text-muted">' + fFH(cm.fecha) + '</td><td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="amo(fCoF(\'' + cm.id + '\'))"><i class="fa-solid fa-pen text-xs"></i></button><button class="btn-icon" data-action="del" data-id="' + cm.id + '" data-tb="comunicaciones"><i class="fa-solid fa-trash text-xs text-danger"></i></button></div></td></tr>';
+    h += '<tr><td>' + tI(cm.tipo) + '</td><td class="font-semibold">' + (cl ? esc(cl.nombre) + ' ' + esc(cl.apellido) : '—') + '</td><td class="text-xs text-muted">' + (cm.asunto ? esc(cm.asunto) : '—') + '</td><td class="text-xs text-muted">' + fFH(cm.fecha) + '</td><td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="amo(fCoF(\'' + cm.id + '\'))"><i class="fa-solid fa-pen text-xs"></i></button><button class="btn-icon" data-action="del" data-id="' + cm.id + '" data-tb="comunicaciones"><i class="fa-solid fa-trash text-xs text-danger"></i></button></div></td></tr>';
   });
   c.innerHTML = '<div class="fade-in"><div class="flex flex-wrap items-center justify-between gap-4 mb-6">' +
     '<div class="search-box"><i class="fa-solid fa-magnifying-glass"></i><input type="text" class="form-input w-72" placeholder="Buscar..." id="sCo"></div>' +
@@ -1184,7 +1191,7 @@ function rCo(c) {
       var cl = gC(cm.cliente_id);
       return ((cm.asunto || '') + ' ' + (cl ? cl.nombre : '')).toLowerCase().indexOf(q) >= 0;
     }).map(function (cm) {
-      return '<tr><td>' + tI(cm.tipo) + '</td><td class="font-semibold">' + (gC(cm.cliente_id) ? gC(cm.cliente_id).nombre : '') + '</td><td class="text-xs text-muted">' + fFH(cm.fecha) + '</td><td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="amo(fCoF(\'' + cm.id + '\'))"><i class="fa-solid fa-pen text-xs"></i></button></div></td></tr>';
+      return '<tr><td>' + tI(cm.tipo) + '</td><td class="font-semibold">' + (gC(cm.cliente_id) ? esc(gC(cm.cliente_id).nombre) : '') + '</td><td class="text-xs text-muted">' + fFH(cm.fecha) + '</td><td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="amo(fCoF(\'' + cm.id + '\'))"><i class="fa-solid fa-pen text-xs"></i></button></div></td></tr>';
     }).join('') || '<tr><td colspan="5"><div class="empty-state"><p>Sin resultados</p></div></td></tr>';
   });
 }
@@ -1192,7 +1199,7 @@ function rCo(c) {
 window.fCoF = function (id) {
   var cm = id ? D.co.find(function (x) { return x.id === id; }) : null;
   var opts = D.cl.map(function (cl) {
-    return '<option value="' + cl.id + '"' + (cm && cl.id === cm.cliente_id ? ' selected' : '') + '>' + cl.nombre + ' ' + cl.apellido + '</option>';
+    return '<option value="' + cl.id + '"' + (cm && cl.id === cm.cliente_id ? ' selected' : '') + '>' + esc(cl.nombre + ' ' + cl.apellido) + '</option>';
   }).join('');
   var fv = cm && cm.fecha ? new Date(cm.fecha).toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16);
   return '<form id="FrCo">' +
@@ -1230,8 +1237,8 @@ function rNf(c) {
     var v = gV(n.vehiculo_id);
     var cl = n.cliente_id ? gC(n.cliente_id) : null;
     var u = n.estado === 'pendiente' ? '#F59E0B' : n.estado === 'notificado' ? '#06B6D4' : n.estado === 'atendido' ? '#10B981' : '#6E7489';
-    h += '<tr><td><div class="flex items-center gap-2"><span style="width:6px;height:6px;border-radius:50%;background:' + u + ';flex-shrink:0"></span><div><p class="text-xs font-semibold text-fg">' + (v ? v.marca + ' ' + v.modelo : '—') + '</p><p class="text-[10px] text-muted">' + (cl ? cl.nombre : '') + '</p></div></div></td>' +
-      '<td class="text-xs text-muted" style="max-width:220px">' + n.mensaje + '</td>' +
+    h += '<tr><td><div class="flex items-center gap-2"><span style="width:6px;height:6px;border-radius:50%;background:' + u + ';flex-shrink:0"></span><div><p class="text-xs font-semibold text-fg">' + (v ? esc(v.marca) + ' ' + esc(v.modelo) : '—') + '</p><p class="text-[10px] text-muted">' + (cl ? esc(cl.nombre) : '') + '</p></div></div></td>' +
+      '<td class="text-xs text-muted" style="max-width:220px">' + esc(n.mensaje) + '</td>' +
       '<td>' + eBN(n.estado) + '</td>' +
       '<td class="text-xs text-muted">' + fF(n.fecha_alerta) + '</td>' +
       '<td><div class="flex gap-1 justify-end">' +
@@ -1272,7 +1279,7 @@ window.updNf = function (id, estado) {
 function rSv(c) {
   var h = '';
   D.sv.forEach(function (sv) {
-    h += '<tr><td class="font-semibold">' + sv.nombre + '</td><td class="text-xs text-muted" style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (sv.descripcion || '—') + '</td><td class="font-semibold">' + fM(sv.precio_base) + '</td><td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="amo(fSvF(\'' + sv.id + '\'))"><i class="fa-solid fa-pen text-xs"></i></button><button class="btn-icon" data-action="del" data-id="' + sv.id + '" data-tb="servicios"><i class="fa-solid fa-trash text-xs text-danger"></i></button></div></td></tr>';
+    h += '<tr><td class="font-semibold">' + esc(sv.nombre) + '</td><td class="text-xs text-muted" style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (sv.descripcion ? esc(sv.descripcion) : '—') + '</td><td class="font-semibold">' + fM(sv.precio_base) + '</td><td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="amo(fSvF(\'' + sv.id + '\'))"><i class="fa-solid fa-pen text-xs"></i></button><button class="btn-icon" data-action="del" data-id="' + sv.id + '" data-tb="servicios"><i class="fa-solid fa-trash text-xs text-danger"></i></button></div></td></tr>';
   });
   c.innerHTML = '<div class="fade-in"><div class="flex flex-wrap items-center justify-between gap-4 mb-6">' +
     '<div class="search-box"><i class="fa-solid fa-magnifying-glass"></i><input type="text" class="form-input w-72" placeholder="Buscar..." id="sSv"></div>' +
@@ -1285,7 +1292,7 @@ function rSv(c) {
     c.querySelector('tbody').innerHTML = D.sv.filter(function (sv) {
       return (sv.nombre + ' ' + (sv.descripcion || '')).toLowerCase().indexOf(q) >= 0;
     }).map(function (sv) {
-      return '<tr><td class="font-semibold">' + sv.nombre + '</td><td class="font-semibold">' + fM(sv.precio_base) + '</td><td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="amo(fSvF(\'' + sv.id + '\'))"><i class="fa-solid fa-pen text-xs"></i></button></div></td></tr>';
+      return '<tr><td class="font-semibold">' + esc(sv.nombre) + '</td><td class="font-semibold">' + fM(sv.precio_base) + '</td><td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="amo(fSvF(\'' + sv.id + '\'))"><i class="fa-solid fa-pen text-xs"></i></button></div></td></tr>';
     }).join('') || '<tr><td colspan="4"><div class="empty-state"><p>Sin resultados</p></div></td></tr>';
   });
 }
@@ -1322,7 +1329,7 @@ function rInv(c) {
     var st = i.cantidad === 0 ? '<span class="badge b-urgente">Sin Stock</span>'
       : i.cantidad <= i.stock_min ? '<span class="badge b-alta">Bajo</span>'
       : '<span class="badge b-normal">OK</span>';
-    h += '<tr><td class="text-xs font-mono text-muted">' + (i.codigo || '—') + '</td><td class="font-semibold">' + i.nombre + '</td><td class="text-xs text-muted">' + (i.categoria || '—') + '</td><td style="color:' + (i.cantidad <= i.stock_min ? '#EF4444' : '#E4E5EA') + ';font-weight:600">' + i.cantidad + '</td><td class="text-xs text-muted">' + i.stock_min + '</td><td class="text-xs">' + fM(i.precio_unitario) + '</td><td class="text-xs text-muted">' + (i.proveedor || '—') + '</td><td><div class="flex gap-1 justify-end"><button class="btn-icon" style="color:#10B981" onclick="amo(fAjInv(\'' + i.id + '\'))"><i class="fa-solid fa-plus text-xs"></i></button><button class="btn-icon" onclick="amo(fInvF(\'' + i.id + '\'))"><i class="fa-solid fa-pen text-xs"></i></button><button class="btn-icon" data-action="del" data-id="' + i.id + '" data-tb="inventario"><i class="fa-solid fa-trash text-xs text-danger"></i></button></div></td></tr>';
+    h += '<tr><td class="text-xs font-mono text-muted">' + (i.codigo ? esc(i.codigo) : '—') + '</td><td class="font-semibold">' + esc(i.nombre) + '</td><td class="text-xs text-muted">' + (i.categoria ? esc(i.categoria) : '—') + '</td><td style="color:' + (i.cantidad <= i.stock_min ? '#EF4444' : '#E4E5EA') + ';font-weight:600">' + i.cantidad + '</td><td class="text-xs text-muted">' + i.stock_min + '</td><td class="text-xs">' + fM(i.precio_unitario) + '</td><td class="text-xs text-muted">' + (i.proveedor ? esc(i.proveedor) : '—') + '</td><td><div class="flex gap-1 justify-end"><button class="btn-icon" style="color:#10B981" onclick="amo(fAjInv(\'' + i.id + '\'))"><i class="fa-solid fa-plus text-xs"></i></button><button class="btn-icon" onclick="amo(fInvF(\'' + i.id + '\'))"><i class="fa-solid fa-pen text-xs"></i></button><button class="btn-icon" data-action="del" data-id="' + i.id + '" data-tb="inventario"><i class="fa-solid fa-trash text-xs text-danger"></i></button></div></td></tr>';
   });
   c.innerHTML = '<div class="fade-in"><div class="flex flex-wrap items-center justify-between gap-4 mb-6">' +
     '<div class="search-box"><i class="fa-solid fa-magnifying-glass"></i><input type="text" class="form-input w-64" placeholder="Buscar..." id="sInv"></div>' +
@@ -1335,7 +1342,7 @@ function rInv(c) {
     c.querySelector('tbody').innerHTML = D.inv.filter(function (i) {
       return (i.nombre + ' ' + (i.codigo || '')).toLowerCase().indexOf(q) >= 0;
     }).map(function (i) {
-      return '<tr><td class="font-semibold">' + i.nombre + '</td><td class="font-semibold">' + i.cantidad + '</td><td>' + fM(i.precio_unitario) + '</td><td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="amo(fInvF(\'' + i.id + '\'))"><i class="fa-solid fa-pen text-xs"></i></button></div></td></tr>';
+      return '<tr><td class="font-semibold">' + esc(i.nombre) + '</td><td class="font-semibold">' + i.cantidad + '</td><td>' + fM(i.precio_unitario) + '</td><td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="amo(fInvF(\'' + i.id + '\'))"><i class="fa-solid fa-pen text-xs"></i></button></div></td></tr>';
     }).join('') || '<tr><td colspan="8"><div class="empty-state"><p>Sin resultados</p></div></td></tr>';
   });
 }
@@ -1410,7 +1417,7 @@ function rGas(c) {
   D.gas.forEach(function (e) {
     var co = GC_MAP[e.categoria] || '#6E7489';
     var isU = e.metodo === 'efectivo_usd';
-    h += '<tr><td class="text-xs text-muted">' + fF(e.fecha) + '</td><td><span class="badge" style="background:' + co + '18;color:' + co + '">' + (e.categoria || 'Otros') + '</span></td><td class="text-sm text-fg">' + (e.concepto || '—') + '</td><td>' + mB(e.metodo) + '</td><td style="text-align:right" class="font-bold text-danger">' + fM(e.monto) + (isU ? '<br><span class="text-[10px] text-usd font-normal">($' + (e.monto / TDC).toFixed(2) + ')</span>' : '') + '</td><td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="openGasModal(\'' + e.id + '\')"><i class="fa-solid fa-pen text-xs"></i></button><button class="btn-icon" data-action="del" data-id="' + e.id + '" data-tb="gastos"><i class="fa-solid fa-trash text-xs text-danger"></i></button></div></td></tr>';
+    h += '<tr><td class="text-xs text-muted">' + fF(e.fecha) + '</td><td><span class="badge" style="background:' + co + '18;color:' + co + '">' + (e.categoria || 'Otros') + '</span></td><td class="text-sm text-fg">' + (e.concepto ? esc(e.concepto) : '—') + '</td><td>' + mB(e.metodo) + '</td><td style="text-align:right" class="font-bold text-danger">' + fM(e.monto) + (isU ? '<br><span class="text-[10px] text-usd font-normal">($' + (e.monto / TDC).toFixed(2) + ')</span>' : '') + '</td><td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="openGasModal(\'' + e.id + '\')"><i class="fa-solid fa-pen text-xs"></i></button><button class="btn-icon" data-action="del" data-id="' + e.id + '" data-tb="gastos"><i class="fa-solid fa-trash text-xs text-danger"></i></button></div></td></tr>';
   });
   
   var btnNuevo = '<button id="btnNuevoGas" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Nuevo</button>';
@@ -1521,8 +1528,8 @@ function rPag(c) {
     var cl = v ? gC(v.cliente_id) : null;
     h += '<tr>' +
       '<td class="text-xs text-muted">' + fF(p.fecha) + '</td>' +
-      '<td><span class="text-xs font-semibold text-fg">#' + String(p.diagnostico_id).slice(-4) + '</span><br><span class="text-[11px] text-muted">' + (v ? v.marca + ' ' + v.modelo : '—') + '</span></td>' +
-      '<td class="text-xs text-muted">' + (cl ? cl.nombre + ' ' + cl.apellido : '—') + '</td>' +
+      '<td><span class="text-xs font-semibold text-fg">#' + String(p.diagnostico_id).slice(-4) + '</span><br><span class="text-[11px] text-muted">' + (v ? esc(v.marca) + ' ' + esc(v.modelo) : '—') + '</span></td>' +
+      '<td class="text-xs text-muted">' + (cl ? esc(cl.nombre) + ' ' + esc(cl.apellido) : '—') + '</td>' +
       '<td>' + mB(p.metodo) + '</td>' +
       '<td style="text-align:right" class="font-bold text-accent">' + fM(p.monto) + '</td>' +
       '<td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="amo(fPagF(\'' + p.diagnostico_id + '\'))"><i class="fa-solid fa-plus text-xs text-accent"></i></button></div></td>' +
@@ -1546,11 +1553,11 @@ window.fPagF = function (did) {
   var vo = D.dg.map(function (dg) {
     var vv = gV(dg.vehiculo_id);
     var ccl = vv ? gC(vv.cliente_id) : null;
-    return '<option value="' + dg.id + '"' + (dg.id === did ? ' selected' : '') + '>#' + String(dg.id).slice(-4) + ' - ' + (vv ? vv.marca + ' ' + vv.modelo : '') + ' (' + (ccl ? ccl.nombre : '') + ')</option>';
+    return '<option value="' + dg.id + '"' + (dg.id === did ? ' selected' : '') + '>#' + String(dg.id).slice(-4) + ' - ' + (vv ? esc(vv.marca) + ' ' + esc(vv.modelo) : '') + ' (' + (ccl ? esc(ccl.nombre) : '') + ')</option>';
   }).join('');
   return '<form id="FrPag">' +
     '<div class="form-group"><label class="form-label">Orden de Diagnostico</label><select class="form-input" name="diagnostico_id" required id="pDg"><option value="">Seleccionar...</option>' + vo + '</select></div>' +
-    (d ? '<div class="p-3 rounded-xl bg-surface mb-4"><p class="text-xs text-muted">Cliente: <span class="text-fg font-semibold">' + (cl ? cl.nombre + ' ' + cl.apellido : '—') + '</span></p><p class="text-xs text-muted">Vehiculo: <span class="text-fg font-semibold">' + (v ? v.marca + ' ' + v.modelo : '—') + '</span></p><p class="text-xs text-muted mt-1">Total Orden: <span class="text-accent font-bold">' + fM(d.costo) + '</span></p></div>' : '') +
+    (d ? '<div class="p-3 rounded-xl bg-surface mb-4"><p class="text-xs text-muted">Cliente: <span class="text-fg font-semibold">' + (cl ? esc(cl.nombre) + ' ' + esc(cl.apellido) : '—') + '</span></p><p class="text-xs text-muted">Vehiculo: <span class="text-fg font-semibold">' + (v ? esc(v.marca) + ' ' + esc(v.modelo) : '—') + '</span></p><p class="text-xs text-muted mt-1">Total Orden: <span class="text-accent font-bold">' + fM(d.costo) + '</span></p></div>' : '') +
     '<div class="grid grid-cols-2 gap-4">' +
     '<div class="form-group"><label class="form-label">Fecha</label><input type="date" class="form-input" name="fecha" value="' + today() + '"></div>' +
     '<div class="form-group"><label class="form-label">Metodo</label><select class="form-input" name="metodo"><option value="efectivo">Efectivo</option><option value="efectivo_usd">USD</option><option value="tarjeta">Tarjeta</option><option value="transferencia">Transferencia</option></select></div>' +
