@@ -407,7 +407,11 @@ function vKm(id) { return D.km.filter(function (x) { return x.vehiculo_id === id
 function vPag(did) { return D.pag.filter(function (x) { return x.diagnostico_id === did; }); }
 function ini(n, a) { return ((n ? n[0] : '') + (a ? a[0] : '')).toUpperCase(); }
 
-// --- SEGURIDAD: Función para escapar caracteres HTML ---
+// --- Helper para crear boton de guardar ---
+window.sb = function(id, txt) {
+  return '<button type="submit" form="' + id + '" class="btn btn-primary">' + (txt || 'Guardar') + '</button>';
+};
+
 function esc(str) {
   if (str == null) return '';
   return String(str).replace(/[&<>"']/g, function (m) {
@@ -756,13 +760,13 @@ function rCl(c) {
       '<td class="text-xs text-muted">' + (cl.cedula_rif ? esc(cl.cedula_rif) : '—') + '</td>' +
       '<td><span class="badge bg-accent/10 text-accent">' + n + '</span></td>' +
       '<td><div class="flex gap-1 justify-end">' +
-      '<button class="btn-icon" onclick="amo(fClF(\'' + cl.id + '\'))"><i class="fa-solid fa-pen text-xs"></i></button>' +
+      '<button class="btn-icon" onclick="window.amo(\'Editar Cliente\', window.fClF(\'' + cl.id + '\'), window.sb(\'FrCl\'))"><i class="fa-solid fa-pen text-xs"></i></button>' +
       '<button class="btn-icon" data-action="del" data-id="' + cl.id + '" data-tb="clientes"><i class="fa-solid fa-trash text-xs text-danger"></i></button>' +
       '</div></td></tr>';
   });
   c.innerHTML = '<div class="fade-in"><div class="flex flex-wrap items-center justify-between gap-4 mb-6">' +
     '<div class="search-box"><i class="fa-solid fa-magnifying-glass"></i><input type="text" class="form-input w-72" placeholder="Buscar..." id="sCl"></div>' +
-    '<button class="btn btn-primary" onclick="amo(fClF())"><i class="fa-solid fa-plus"></i> Nuevo</button></div>' +
+    '<button class="btn btn-primary" onclick="window.amo(\'Nuevo Cliente\', window.fClF(), window.sb(\'FrCl\'))"><i class="fa-solid fa-plus"></i> Nuevo</button></div>' +
     '<div class="bg-card border border-border rounded-2xl overflow-hidden"><div class="overflow-x-auto"><table class="data-table"><thead><tr><th>Cliente</th><th>Email</th><th>Cedula</th><th>Veh</th><th>Acciones</th></tr></thead><tbody>' +
     (h || '<tr><td colspan="5"><div class="empty-state"><i class="fa-solid fa-users"></i><p>Sin clientes</p></div></td></tr>') +
     '</tbody></table></div></div></div>';
@@ -775,7 +779,7 @@ function rCl(c) {
       var n = vCl(cl.id).length;
       return '<tr><td><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center text-accent font-display font-bold text-sm">' + ini(cl.nombre, cl.apellido) + '</div><div class="text-sm font-semibold text-fg">' + esc(cl.nombre) + ' ' + esc(cl.apellido) + '</div></div></td>' +
       '<td class="text-xs text-muted">' + esc(cl.telefono) + '</td><td><span class="badge bg-accent/10 text-accent">' + n + '</span></td>' +
-      '<td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="amo(fClF(\'' + cl.id + '\'))"><i class="fa-solid fa-pen text-xs"></i></button>' +
+      '<td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="window.amo(\'Editar Cliente\', window.fClF(\'' + cl.id + '\'), window.sb(\'FrCl\'))"><i class="fa-solid fa-pen text-xs"></i></button>' +
       '<button class="btn-icon" data-action="del" data-id="' + cl.id + '" data-tb="clientes"><i class="fa-solid fa-trash text-xs text-danger"></i></button></div></td></tr>';
     }).join('') || '<tr><td colspan="5"><div class="empty-state"><p>Sin resultados</p></div></td></tr>';
   });
@@ -838,14 +842,14 @@ function rVh(c) {
       '<td>' + badge + '</td>' +
       '<td><div class="flex gap-1 justify-end">' +
       '<button class="btn-icon" style="color:#8B5CF6" onclick="window.HUID=\'' + v.id + '\';nav(\'historial_unidad\')"><i class="fa-solid fa-clock-rotate-left text-xs"></i></button>' +
-      '<button class="btn-icon" onclick="amo(fDgF(null,\'' + v.id + '\'))"><i class="fa-solid fa-stethoscope text-xs"></i></button>' +
-      '<button class="btn-icon" onclick="amo(fVhF(\'' + v.id + '\'))"><i class="fa-solid fa-pen text-xs"></i></button>' +
+      '<button class="btn-icon" onclick="window.amo(\'Diagnostico\', window.fDgF(null,\'' + v.id + '\'), window.sb(\'FrDg\'))"><i class="fa-solid fa-stethoscope text-xs"></i></button>' +
+      '<button class="btn-icon" onclick="window.amo(\'Editar Vehiculo\', window.fVhF(\'' + v.id + '\'), window.sb(\'FrVh\'))"><i class="fa-solid fa-pen text-xs"></i></button>' +
       '<button class="btn-icon" data-action="del" data-id="' + v.id + '" data-tb="vehiculos"><i class="fa-solid fa-trash text-xs text-danger"></i></button>' +
       '</div></td></tr>';
   });
   c.innerHTML = '<div class="fade-in"><div class="flex flex-wrap items-center justify-between gap-4 mb-6">' +
     '<div class="search-box"><i class="fa-solid fa-magnifying-glass"></i><input type="text" class="form-input w-72" placeholder="Buscar placa, marca..." id="sVh"></div>' +
-    '<button class="btn btn-primary" onclick="amo(fVhF())"><i class="fa-solid fa-plus"></i> Nuevo</button></div>' +
+    '<button class="btn btn-primary" onclick="window.amo(\'Nuevo Vehiculo\', window.fVhF(), window.sb(\'FrVh\'))"><i class="fa-solid fa-plus"></i> Nuevo</button></div>' +
     '<div class="bg-card border border-border rounded-2xl overflow-hidden"><div class="overflow-x-auto"><table class="data-table"><thead><tr><th>Vehiculo</th><th>Placa</th><th>Propietario</th><th>Km</th><th>Estado Km</th><th>Acciones</th></tr></thead><tbody>' +
     (h || '<tr><td colspan="6"><div class="empty-state"><i class="fa-solid fa-car"></i><p>Sin vehiculos</p></div></td></tr>') +
     '</tbody></table></div></div></div>';
@@ -859,7 +863,7 @@ function rVh(c) {
         '<td><span class="font-mono text-xs px-2 py-1 rounded-lg bg-accent/10 text-accent font-bold">' + esc(v.placa) + '</span></td>' +
         '<td class="text-xs text-muted">' + (cl ? esc(cl.nombre) : '') + '</td>' +
         '<td>' + (v.kilometraje ? v.kilometraje.toLocaleString() + ' km' : '—') + '</td><td>—</td>' +
-        '<td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="amo(fVhF(\'' + v.id + '\'))"><i class="fa-solid fa-pen text-xs"></i></button>' +
+        '<td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="window.amo(\'Editar Vehiculo\', window.fVhF(\'' + v.id + '\'), window.sb(\'FrVh\'))"><i class="fa-solid fa-pen text-xs"></i></button>' +
         '<button class="btn-icon" data-action="del" data-id="' + v.id + '" data-tb="vehiculos"><i class="fa-solid fa-trash text-xs text-danger"></i></button></div></td></tr>';
     }).join('') || '<tr><td colspan="6"><div class="empty-state"><p>Sin resultados</p></div></td></tr>';
   });
@@ -921,13 +925,13 @@ function rDg(c) {
       '<td class="font-semibold">' + fM(d.costo) + '</td>' +
       '<td><div class="flex gap-1 justify-end">' +
       '<button class="btn-icon" onclick="mDDgH(\'' + d.id + '\')"><i class="fa-solid fa-eye text-xs"></i></button>' +
-      '<button class="btn-icon" onclick="amo(fDgF(\'' + d.id + '\'))"><i class="fa-solid fa-pen text-xs"></i></button>' +
+      '<button class="btn-icon" onclick="window.amo(\'Editar Diagnostico\', window.fDgF(\'' + d.id + '\'), window.sb(\'FrDg\'))"><i class="fa-solid fa-pen text-xs"></i></button>' +
       '<button class="btn-icon" data-action="del" data-id="' + d.id + '" data-tb="diagnosticos_reparaciones"><i class="fa-solid fa-trash text-xs text-danger"></i></button>' +
       '</div></td></tr>';
   });
   c.innerHTML = '<div class="fade-in"><div class="flex flex-wrap items-center justify-between gap-4 mb-6">' +
     '<div class="search-box"><i class="fa-solid fa-magnifying-glass"></i><input type="text" class="form-input w-64" placeholder="Buscar..." id="sDg"></div>' +
-    '<button class="btn btn-primary" onclick="amo(fDgF())"><i class="fa-solid fa-plus"></i> Nuevo</button></div>' +
+    '<button class="btn btn-primary" onclick="window.amo(\'Nuevo Diagnostico\', window.fDgF(), window.sb(\'FrDg\'))"><i class="fa-solid fa-plus"></i> Nuevo</button></div>' +
     '<div class="bg-card border border-border rounded-2xl overflow-hidden"><div class="overflow-x-auto"><table class="data-table"><thead><tr><th>Vehiculo</th><th>Cliente</th><th>Tipo</th><th>Diagnostico</th><th>Estado</th><th>Costo</th><th>Acciones</th></tr></thead><tbody>' +
     (h || '<tr><td colspan="7"><div class="empty-state"><i class="fa-solid fa-stethoscope"></i><p>Sin diagnosticos</p></div></td></tr>') +
     '</tbody></table></div></div></div>';
@@ -941,7 +945,7 @@ function rDg(c) {
       var v = gV(d.vehiculo_id);
       return '<tr><td class="font-semibold">' + (v ? v.marca + ' ' + v.modelo : '—') + '</td>' +
         '<td>' + eB(d.estado) + '</td><td class="font-semibold">' + fM(d.costo) + '</td>' +
-        '<td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="amo(fDgF(\'' + d.id + '\'))"><i class="fa-solid fa-pen text-xs"></i></button></div></td></tr>';
+        '<td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="window.amo(\'Editar Diagnostico\', window.fDgF(\'' + d.id + '\'), window.sb(\'FrDg\'))"><i class="fa-solid fa-pen text-xs"></i></button></div></td></tr>';
     }).join('') || '<tr><td colspan="7"><div class="empty-state"><p>Sin resultados</p></div></td></tr>';
   });
 }
@@ -1043,7 +1047,7 @@ async function mDDgH(id) {
     '</div>',
     '<button class="btn btn-secondary" onclick="cmo()">Cerrar</button>' +
     (cl && cl.telefono ? '<a href="' + wa + '" target="_blank" class="btn" style="background:rgba(37,211,102,.12);color:#25D366"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a>' : '') +
-    '<button class="btn btn-secondary" onclick="amo(fPagF(\'' + d.id + '\'))"><i class="fa-solid fa-coins"></i> Pago</button>'
+    '<button class="btn btn-secondary" onclick="window.amo(\'Registrar Pago\', window.fPagF(\'' + d.id + '\'), window.sb(\'FrPag\'))"><i class="fa-solid fa-coins"></i> Pago</button>'
   );
 }
 window.mDDgH = mDDgH;
@@ -1065,13 +1069,13 @@ function rKm(c) {
       '<td>' + kmB(es) + '</td>' +
       '<td>' + (sk.activo !== false ? '<span class="badge b-normal">Activo</span>' : '<span class="badge b-baja">Inactivo</span>') + '</td>' +
       '<td><div class="flex gap-1 justify-end">' +
-      '<button class="btn-icon" onclick="amo(fKmF(\'' + sk.id + '\'))"><i class="fa-solid fa-pen text-xs"></i></button>' +
+      '<button class="btn-icon" onclick="window.amo(\'Editar Mantenimiento\', window.fKmF(\'' + sk.id + '\'), window.sb(\'FrKm\'))"><i class="fa-solid fa-pen text-xs"></i></button>' +
       '<button class="btn-icon" data-action="del" data-id="' + sk.id + '" data-tb="servicios_kilometraje"><i class="fa-solid fa-trash text-xs text-danger"></i></button>' +
       '</div></td></tr>';
   });
   c.innerHTML = '<div class="fade-in"><div class="flex flex-wrap items-center justify-between gap-4 mb-6">' +
     '<div class="search-box"><i class="fa-solid fa-magnifying-glass"></i><input type="text" class="form-input w-72" placeholder="Buscar..." id="sKm"></div>' +
-    '<button class="btn btn-primary" onclick="amo(fKmF())"><i class="fa-solid fa-plus"></i> Nuevo</button></div>' +
+    '<button class="btn btn-primary" onclick="window.amo(\'Nuevo Mantenimiento\', window.fKmF(), window.sb(\'FrKm\'))"><i class="fa-solid fa-plus"></i> Nuevo</button></div>' +
     '<div class="bg-card border border-border rounded-2xl overflow-hidden"><div class="overflow-x-auto"><table class="data-table"><thead><tr><th>Vehiculo</th><th>Cliente</th><th>Servicio</th><th>Control</th><th>Progreso</th><th>Restante</th><th>Estado</th><th>Activo</th><th>Acciones</th></tr></thead><tbody>' +
     (h || '<tr><td colspan="9"><div class="empty-state"><i class="fa-solid fa-tachometer-alt"></i><p>Sin mantenimientos</p></div></td></tr>') +
     '</tbody></table></div></div></div>';
@@ -1084,7 +1088,7 @@ function rKm(c) {
     }).map(function (sk) {
       var v = gV(sk.vehiculo_id);
       var es = calcKm(sk);
-      return '<tr><td class="font-semibold">' + esc(v.marca) + ' ' + esc(v.modelo) + '</td><td class="text-xs text-muted">' + (gC(v.cliente_id) ? esc(gC(v.cliente_id).nombre) : '') + '</td><td>' + esc(sk.tipo_servicio) + '</td><td>' + kmB(es) + '</td><td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="amo(fKmF(\'' + sk.id + '\'))"><i class="fa-solid fa-pen text-xs"></i></button></div></td></tr>';
+      return '<tr><td class="font-semibold">' + esc(v.marca) + ' ' + esc(v.modelo) + '</td><td class="text-xs text-muted">' + (gC(v.cliente_id) ? esc(gC(v.cliente_id).nombre) : '') + '</td><td>' + esc(sk.tipo_servicio) + '</td><td>' + kmB(es) + '</td><td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="window.amo(\'Editar Mantenimiento\', window.fKmF(\'' + sk.id + '\'), window.sb(\'FrKm\'))"><i class="fa-solid fa-pen text-xs"></i></button></div></td></tr>';
     }).join('') || '<tr><td colspan="9"><div class="empty-state"><p>Sin resultados</p></div></td></tr>';
   });
 }
@@ -1177,11 +1181,11 @@ function rCo(c) {
   var h = '';
   D.co.forEach(function (cm) {
     var cl = gC(cm.cliente_id);
-    h += '<tr><td>' + tI(cm.tipo) + '</td><td class="font-semibold">' + (cl ? esc(cl.nombre) + ' ' + esc(cl.apellido) : '—') + '</td><td class="text-xs text-muted">' + (cm.asunto ? esc(cm.asunto) : '—') + '</td><td class="text-xs text-muted">' + fFH(cm.fecha) + '</td><td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="amo(fCoF(\'' + cm.id + '\'))"><i class="fa-solid fa-pen text-xs"></i></button><button class="btn-icon" data-action="del" data-id="' + cm.id + '" data-tb="comunicaciones"><i class="fa-solid fa-trash text-xs text-danger"></i></button></div></td></tr>';
+    h += '<tr><td>' + tI(cm.tipo) + '</td><td class="font-semibold">' + (cl ? esc(cl.nombre) + ' ' + esc(cl.apellido) : '—') + '</td><td class="text-xs text-muted">' + (cm.asunto ? esc(cm.asunto) : '—') + '</td><td class="text-xs text-muted">' + fFH(cm.fecha) + '</td><td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="window.amo(\'Editar Comunicacion\', window.fCoF(\'' + cm.id + '\'), window.sb(\'FrCo\'))"><i class="fa-solid fa-pen text-xs"></i></button><button class="btn-icon" data-action="del" data-id="' + cm.id + '" data-tb="comunicaciones"><i class="fa-solid fa-trash text-xs text-danger"></i></button></div></td></tr>';
   });
   c.innerHTML = '<div class="fade-in"><div class="flex flex-wrap items-center justify-between gap-4 mb-6">' +
     '<div class="search-box"><i class="fa-solid fa-magnifying-glass"></i><input type="text" class="form-input w-72" placeholder="Buscar..." id="sCo"></div>' +
-    '<button class="btn btn-primary" onclick="amo(fCoF())"><i class="fa-solid fa-plus"></i> Nueva</button></div>' +
+    '<button class="btn btn-primary" onclick="window.amo(\'Nueva Comunicacion\', window.fCoF(), window.sb(\'FrCo\'))"><i class="fa-solid fa-plus"></i> Nueva</button></div>' +
     '<div class="bg-card border border-border rounded-2xl overflow-hidden"><div class="overflow-x-auto"><table class="data-table"><thead><tr><th>Tipo</th><th>Cliente</th><th>Asunto</th><th>Fecha</th><th>Acciones</th></tr></thead><tbody>' +
     (h || '<tr><td colspan="5"><div class="empty-state"><i class="fa-solid fa-comments"></i><p>Sin comunicaciones</p></div></td></tr>') +
     '</tbody></table></div></div></div>';
@@ -1191,7 +1195,7 @@ function rCo(c) {
       var cl = gC(cm.cliente_id);
       return ((cm.asunto || '') + ' ' + (cl ? cl.nombre : '')).toLowerCase().indexOf(q) >= 0;
     }).map(function (cm) {
-      return '<tr><td>' + tI(cm.tipo) + '</td><td class="font-semibold">' + (gC(cm.cliente_id) ? esc(gC(cm.cliente_id).nombre) : '') + '</td><td class="text-xs text-muted">' + fFH(cm.fecha) + '</td><td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="amo(fCoF(\'' + cm.id + '\'))"><i class="fa-solid fa-pen text-xs"></i></button></div></td></tr>';
+      return '<tr><td>' + tI(cm.tipo) + '</td><td class="font-semibold">' + (gC(cm.cliente_id) ? esc(gC(cm.cliente_id).nombre) : '') + '</td><td class="text-xs text-muted">' + fFH(cm.fecha) + '</td><td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="window.amo(\'Editar Comunicacion\', window.fCoF(\'' + cm.id + '\'), window.sb(\'FrCo\'))"><i class="fa-solid fa-pen text-xs"></i></button></div></td></tr>';
     }).join('') || '<tr><td colspan="5"><div class="empty-state"><p>Sin resultados</p></div></td></tr>';
   });
 }
@@ -1279,11 +1283,11 @@ window.updNf = function (id, estado) {
 function rSv(c) {
   var h = '';
   D.sv.forEach(function (sv) {
-    h += '<tr><td class="font-semibold">' + esc(sv.nombre) + '</td><td class="text-xs text-muted" style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (sv.descripcion ? esc(sv.descripcion) : '—') + '</td><td class="font-semibold">' + fM(sv.precio_base) + '</td><td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="amo(fSvF(\'' + sv.id + '\'))"><i class="fa-solid fa-pen text-xs"></i></button><button class="btn-icon" data-action="del" data-id="' + sv.id + '" data-tb="servicios"><i class="fa-solid fa-trash text-xs text-danger"></i></button></div></td></tr>';
+    h += '<tr><td class="font-semibold">' + esc(sv.nombre) + '</td><td class="text-xs text-muted" style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (sv.descripcion ? esc(sv.descripcion) : '—') + '</td><td class="font-semibold">' + fM(sv.precio_base) + '</td><td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="window.amo(\'Editar Servicio\', window.fSvF(\'' + sv.id + '\'), window.sb(\'FrSv\'))"><i class="fa-solid fa-pen text-xs"></i></button><button class="btn-icon" data-action="del" data-id="' + sv.id + '" data-tb="servicios"><i class="fa-solid fa-trash text-xs text-danger"></i></button></div></td></tr>';
   });
   c.innerHTML = '<div class="fade-in"><div class="flex flex-wrap items-center justify-between gap-4 mb-6">' +
     '<div class="search-box"><i class="fa-solid fa-magnifying-glass"></i><input type="text" class="form-input w-72" placeholder="Buscar..." id="sSv"></div>' +
-    '<button class="btn btn-primary" onclick="amo(fSvF())"><i class="fa-solid fa-plus"></i> Nuevo</button></div>' +
+    '<button class="btn btn-primary" onclick="window.amo(\'Nuevo Servicio\', window.fSvF(), window.sb(\'FrSv\'))"><i class="fa-solid fa-plus"></i> Nuevo</button></div>' +
     '<div class="bg-card border border-border rounded-2xl overflow-hidden"><div class="overflow-x-auto"><table class="data-table"><thead><tr><th>Servicio</th><th>Descripcion</th><th>Precio</th><th>Acciones</th></tr></thead><tbody>' +
     (h || '<tr><td colspan="4"><div class="empty-state"><i class="fa-solid fa-list-check"></i><p>Sin servicios</p></div></td></tr>') +
     '</tbody></table></div></div></div>';
@@ -1292,7 +1296,7 @@ function rSv(c) {
     c.querySelector('tbody').innerHTML = D.sv.filter(function (sv) {
       return (sv.nombre + ' ' + (sv.descripcion || '')).toLowerCase().indexOf(q) >= 0;
     }).map(function (sv) {
-      return '<tr><td class="font-semibold">' + esc(sv.nombre) + '</td><td class="font-semibold">' + fM(sv.precio_base) + '</td><td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="amo(fSvF(\'' + sv.id + '\'))"><i class="fa-solid fa-pen text-xs"></i></button></div></td></tr>';
+      return '<tr><td class="font-semibold">' + esc(sv.nombre) + '</td><td class="font-semibold">' + fM(sv.precio_base) + '</td><td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="window.amo(\'Editar Servicio\', window.fSvF(\'' + sv.id + '\'), window.sb(\'FrSv\'))"><i class="fa-solid fa-pen text-xs"></i></button></div></td></tr>';
     }).join('') || '<tr><td colspan="4"><div class="empty-state"><p>Sin resultados</p></div></td></tr>';
   });
 }
@@ -1329,11 +1333,11 @@ function rInv(c) {
     var st = i.cantidad === 0 ? '<span class="badge b-urgente">Sin Stock</span>'
       : i.cantidad <= i.stock_min ? '<span class="badge b-alta">Bajo</span>'
       : '<span class="badge b-normal">OK</span>';
-    h += '<tr><td class="text-xs font-mono text-muted">' + (i.codigo ? esc(i.codigo) : '—') + '</td><td class="font-semibold">' + esc(i.nombre) + '</td><td class="text-xs text-muted">' + (i.categoria ? esc(i.categoria) : '—') + '</td><td style="color:' + (i.cantidad <= i.stock_min ? '#EF4444' : '#E4E5EA') + ';font-weight:600">' + i.cantidad + '</td><td class="text-xs text-muted">' + i.stock_min + '</td><td class="text-xs">' + fM(i.precio_unitario) + '</td><td class="text-xs text-muted">' + (i.proveedor ? esc(i.proveedor) : '—') + '</td><td><div class="flex gap-1 justify-end"><button class="btn-icon" style="color:#10B981" onclick="amo(fAjInv(\'' + i.id + '\'))"><i class="fa-solid fa-plus text-xs"></i></button><button class="btn-icon" onclick="amo(fInvF(\'' + i.id + '\'))"><i class="fa-solid fa-pen text-xs"></i></button><button class="btn-icon" data-action="del" data-id="' + i.id + '" data-tb="inventario"><i class="fa-solid fa-trash text-xs text-danger"></i></button></div></td></tr>';
+    h += '<tr><td class="text-xs font-mono text-muted">' + (i.codigo ? esc(i.codigo) : '—') + '</td><td class="font-semibold">' + esc(i.nombre) + '</td><td class="text-xs text-muted">' + (i.categoria ? esc(i.categoria) : '—') + '</td><td style="color:' + (i.cantidad <= i.stock_min ? '#EF4444' : '#E4E5EA') + ';font-weight:600">' + i.cantidad + '</td><td class="text-xs text-muted">' + i.stock_min + '</td><td class="text-xs">' + fM(i.precio_unitario) + '</td><td class="text-xs text-muted">' + (i.proveedor ? esc(i.proveedor) : '—') + '</td><td><div class="flex gap-1 justify-end"><button class="btn-icon" style="color:#10B981" onclick="window.amo(\'Ajustar Stock\', window.fAjInv(\'' + i.id + '\'), window.sb(\'FrAj\'))"><i class="fa-solid fa-plus text-xs"></i></button><button class="btn-icon" onclick="window.amo(\'Editar Producto\', window.fInvF(\'' + i.id + '\'), window.sb(\'FrInv\'))"><i class="fa-solid fa-pen text-xs"></i></button><button class="btn-icon" data-action="del" data-id="' + i.id + '" data-tb="inventario"><i class="fa-solid fa-trash text-xs text-danger"></i></button></div></td></tr>';
   });
   c.innerHTML = '<div class="fade-in"><div class="flex flex-wrap items-center justify-between gap-4 mb-6">' +
     '<div class="search-box"><i class="fa-solid fa-magnifying-glass"></i><input type="text" class="form-input w-64" placeholder="Buscar..." id="sInv"></div>' +
-    '<button class="btn btn-primary" onclick="amo(fInvF())"><i class="fa-solid fa-plus"></i> Nuevo</button></div>' +
+    '<button class="btn btn-primary" onclick="window.amo(\'Nuevo Producto\', window.fInvF(), window.sb(\'FrInv\'))"><i class="fa-solid fa-plus"></i> Nuevo</button></div>' +
     '<div class="bg-card border border-border rounded-2xl overflow-hidden"><div class="overflow-x-auto"><table class="data-table"><thead><tr><th>Codigo</th><th>Nombre</th><th>Categoria</th><th>Stock</th><th>Min</th><th>P.Unit</th><th>Proveedor</th><th>Acciones</th></tr></thead><tbody>' +
     (h || '<tr><td colspan="8"><div class="empty-state"><i class="fa-solid fa-boxes-stacked"></i><p>Sin productos</p></div></td></tr>') +
     '</tbody></table></div></div></div>';
@@ -1342,7 +1346,7 @@ function rInv(c) {
     c.querySelector('tbody').innerHTML = D.inv.filter(function (i) {
       return (i.nombre + ' ' + (i.codigo || '')).toLowerCase().indexOf(q) >= 0;
     }).map(function (i) {
-      return '<tr><td class="font-semibold">' + esc(i.nombre) + '</td><td class="font-semibold">' + i.cantidad + '</td><td>' + fM(i.precio_unitario) + '</td><td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="amo(fInvF(\'' + i.id + '\'))"><i class="fa-solid fa-pen text-xs"></i></button></div></td></tr>';
+      return '<tr><td class="font-semibold">' + esc(i.nombre) + '</td><td class="font-semibold">' + i.cantidad + '</td><td>' + fM(i.precio_unitario) + '</td><td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="window.amo(\'Editar Producto\', window.fInvF(\'' + i.id + '\'), window.sb(\'FrInv\'))"><i class="fa-solid fa-pen text-xs"></i></button></div></td></tr>';
     }).join('') || '<tr><td colspan="8"><div class="empty-state"><p>Sin resultados</p></div></td></tr>';
   });
 }
@@ -1532,7 +1536,7 @@ function rPag(c) {
       '<td class="text-xs text-muted">' + (cl ? esc(cl.nombre) + ' ' + esc(cl.apellido) : '—') + '</td>' +
       '<td>' + mB(p.metodo) + '</td>' +
       '<td style="text-align:right" class="font-bold text-accent">' + fM(p.monto) + '</td>' +
-      '<td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="amo(fPagF(\'' + p.diagnostico_id + '\'))"><i class="fa-solid fa-plus text-xs text-accent"></i></button></div></td>' +
+      '<td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="window.amo(\'Registrar Pago\', window.fPagF(\'' + p.diagnostico_id + '\'), window.sb(\'FrPag\'))"><i class="fa-solid fa-plus text-xs text-accent"></i></button></div></td>' +
       '</tr>';
   });
   c.innerHTML = '<div class="fade-in">' +
