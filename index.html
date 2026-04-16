@@ -407,6 +407,12 @@ function vKm(id) { return D.km.filter(function (x) { return x.vehiculo_id === id
 function vPag(did) { return D.pag.filter(function (x) { return x.diagnostico_id === did; }); }
 function ini(n, a) { return ((n ? n[0] : '') + (a ? a[0] : '')).toUpperCase(); }
 
+// Función auxiliar robusta para detectar USD
+function isUSD(metodo) {
+    if (!metodo) return false;
+    return String(metodo).toLowerCase().indexOf('usd') > -1;
+}
+
 window.sb = function(id, txt) {
   return '<button type="submit" form="' + id + '" class="btn btn-primary">' + (txt || 'Guardar') + '</button>';
 };
@@ -453,7 +459,7 @@ function ePri(e) {
   return '<span class="badge ' + (m[e] || 'b-normal') + '">' + (l[e] || e) + '</span>';
 }
 function mB(m) {
-  if (m === 'efectivo_usd') return '<span class="badge b-usd">USD</span>';
+  if (isUSD(m)) return '<span class="badge b-usd">USD</span>';
   return '<span class="badge b-normal">' + (MT_MAP[m] || m) + '</span>';
 }
 function tI(t) {
@@ -689,8 +695,18 @@ function rDash(c) {
   var pe = D.dg.filter(function (x) { return x.estado === 'pendiente'; }).length;
   var now = new Date();
   var mA = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
-  var gp = D.gas.filter(function (x) { return x.fecha && x.fecha.startsWith(mA); }).reduce(function (s, x) { return s + (parseFloat(x.monto) || 0); }, 0);
-  var tp = D.pag.filter(function (x) { return x.fecha && x.fecha.startsWith(mA); }).reduce(function (s, x) { return s + (parseFloat(x.monto) || 0); }, 0);
+  
+  // CORRECCIÓN USO isUSD
+  var gp = D.gas.filter(function (x) { return x.fecha && x.fecha.startsWith(mA); }).reduce(function (s, x) { 
+      var val = parseFloat(x.monto) || 0;
+      return s + (isUSD(x.metodo) ? val * TDC : val); 
+  }, 0);
+  
+  var tp = D.pag.filter(function (x) { return x.fecha && x.fecha.startsWith(mA); }).reduce(function (s, x) { 
+      var val = parseFloat(x.monto) || 0;
+      return s + (isUSD(x.metodo) ? val * TDC : val); 
+  }, 0);
+  
   var bal = tp - gp;
   var kv = 0, kp = 0;
   D.km.forEach(function (sk) { if (sk.activo) { var es = calcKm(sk); if (es.st === 'vencido') kv++; else if (es.st === 'proximo') kp++; } });
@@ -862,8 +878,7 @@ function rVh(c) {
         '<td><span class="font-mono text-xs px-2 py-1 rounded-lg bg-accent/10 text-accent font-bold">' + esc(v.placa) + '</span></td>' +
         '<td class="text-xs text-muted">' + (cl ? esc(cl.nombre) : '') + '</td>' +
         '<td>' + (v.kilometraje ? v.kilometraje.toLocaleString() + ' km' : '—') + '</td><td>—</td>' +
-        '<td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="window.amo(\'Editar Vehiculo\', window.fVhF(\'' + v.id + '\'), window.sb(\'FrVh\'))"><i class="fa-solid fa-pen text-xs"></i></button>' +
-        '<button class="btn-icon" data-action="del" data-id="' + v.id + '" data-tb="vehiculos"><i class="fa-solid fa-trash text-xs text-danger"></i></button></div></td></tr>';
+        '<td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="window.amo(\'Editar Vehiculo\', window.fVhF(\'' + v.id + '\'), window.sb(\'FrVh\'))"><i class="fa-solid fa-pen text-xs"></i></button></div></td></tr>';
     }).join('') || '<tr><td colspan="6"><div class="empty-state"><p>Sin resultados</p></div></td></tr>';
   });
 }
@@ -1020,12 +1035,19 @@ async function mDDgH(id) {
   var cl = v ? gC(v.cliente_id) : null;
   var pags = vPag(id);
   var tp = 0;
-  pags.forEach(function (p) { tp += parseFloat(p.monto) || 0; });
+  pags.forEach(function (p) { 
+      var val = parseFloat(p.monto) || 0;
+      tp += isUSD(p.metodo) ? val * TDC : val; 
+  });
   var saldo = (parseFloat(d.costo) || 0) - tp;
   var wa = cl && cl.telefono ? 'https://wa.me/' + cl.telefono.replace(/[^0-9]/g, '') : '#';
   var pH = '';
   pags.forEach(function (p) {
-    pH += '<div class="flex justify-between text-xs py-1"><span class="text-muted">' + mB(p.metodo) + ' ' + fF(p.fecha) + '</span><span class="text-accent font-semibold">' + fM(p.monto) + '</span></div>';
+    var val = parseFloat(p.monto) || 0;
+    var u = isUSD(p.metodo);
+    var rowVal = fM(val);
+    if(u) rowVal += '<br><span class="text-[10px] text-muted">(' + fM(val * TDC) + ' MXN)</span>';
+    pH += '<div class="flex justify-between text-xs py-1"><span class="text-muted">' + mB(p.metodo) + ' ' + fF(p.fecha) + '</span><span class="text-accent font-semibold">' + rowVal + '</span></div>';
   });
   var salH = saldo > 0 ? 'Saldo: ' + fM(saldo) : 'Liquidado';
   amo('Orden #' + String(d.id).slice(-4),
@@ -1403,10 +1425,22 @@ document.addEventListener('submit', function (e) {
 function rGas(c) {
   var now = new Date();
   var mA = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
-  var gM = D.gas.filter(function (x) { return x.fecha && x.fecha.startsWith(mA); }).reduce(function (s, x) { return s + (parseFloat(x.monto) || 0); }, 0);
-  var totalG = D.gas.reduce(function (s, x) { return s + (parseFloat(x.monto) || 0); }, 0);
+  // CORRECCIÓN USO isUSD
+  var gM = D.gas.filter(function (x) { return x.fecha && x.fecha.startsWith(mA); }).reduce(function (s, x) { 
+      var val = parseFloat(x.monto) || 0;
+      return s + (isUSD(x.metodo) ? val * TDC : val); 
+  }, 0);
+  var totalG = D.gas.reduce(function (s, x) { 
+      var val = parseFloat(x.monto) || 0;
+      return s + (isUSD(x.metodo) ? val * TDC : val); 
+  }, 0);
   var porCat = {};
-  D.gas.forEach(function (e) { var cat = e.categoria || 'Otros'; porCat[cat] = (porCat[cat] || 0) + (parseFloat(e.monto) || 0); });
+  D.gas.forEach(function (e) { 
+      var val = parseFloat(e.monto) || 0;
+      var realVal = isUSD(e.metodo) ? val * TDC : val;
+      var cat = e.categoria || 'Otros'; 
+      porCat[cat] = (porCat[cat] || 0) + realVal; 
+  });
   var distH = '';
   Object.keys(GC_MAP).forEach(function (cat) {
     var m = porCat[cat] || 0;
@@ -1419,8 +1453,14 @@ function rGas(c) {
   var h = '';
   D.gas.forEach(function (e) {
     var co = GC_MAP[e.categoria] || '#6E7489';
-    var isU = e.metodo === 'efectivo_usd';
-    h += '<tr><td class="text-xs text-muted">' + fF(e.fecha) + '</td><td><span class="badge" style="background:' + co + '18;color:' + co + '">' + (e.categoria || 'Otros') + '</span></td><td class="text-sm text-fg">' + (e.concepto ? esc(e.concepto) : '—') + '</td><td>' + mB(e.metodo) + '</td><td style="text-align:right" class="font-bold text-danger">' + fM(e.monto) + (isU ? '<br><span class="text-[10px] text-usd font-normal">($' + (e.monto / TDC).toFixed(2) + ')</span>' : '') + '</td><td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="openGasModal(\'' + e.id + '\')"><i class="fa-solid fa-pen text-xs"></i></button><button class="btn-icon" data-action="del" data-id="' + e.id + '" data-tb="gastos"><i class="fa-solid fa-trash text-xs text-danger"></i></button></div></td></tr>';
+    var u = isUSD(e.metodo);
+    var val = parseFloat(e.monto) || 0;
+    // Display logic
+    var rowVal = fM(val);
+    if(u) {
+        rowVal += '<br><span class="text-[10px] text-usd font-normal">($' + (val).toFixed(2) + ' USD)</span>';
+    }
+    h += '<tr><td class="text-xs text-muted">' + fF(e.fecha) + '</td><td><span class="badge" style="background:' + co + '18;color:' + co + '">' + (e.categoria || 'Otros') + '</span></td><td class="text-sm text-fg">' + (e.concepto ? esc(e.concepto) : '—') + '</td><td>' + mB(e.metodo) + '</td><td style="text-align:right" class="font-bold text-danger">' + rowVal + '</td><td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="openGasModal(\'' + e.id + '\')"><i class="fa-solid fa-pen text-xs"></i></button><button class="btn-icon" data-action="del" data-id="' + e.id + '" data-tb="gastos"><i class="fa-solid fa-trash text-xs text-danger"></i></button></div></td></tr>';
   });
   
   var btnNuevo = '<button id="btnNuevoGas" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Nuevo</button>';
@@ -1448,7 +1488,12 @@ function rGas(c) {
     c.querySelector('tbody').innerHTML = D.gas.filter(function (e) {
       return ((e.concepto || '') + ' ' + (e.categoria || '')).toLowerCase().indexOf(q) >= 0;
     }).map(function (e) {
-      return '<tr><td class="text-xs text-muted">' + fF(e.fecha) + '</td><td>' + mB(e.metodo) + '</td><td style="text-align:right" class="font-bold text-danger">' + fM(e.monto) + '</td><td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="openGasModal(\'' + e.id + '\')"><i class="fa-solid fa-pen text-xs"></i></button></div></td></tr>';
+      var u = isUSD(e.metodo);
+      var val = parseFloat(e.monto) || 0;
+      var rowVal = fM(val);
+      if(u) rowVal += '<br><span class="text-[10px] text-usd font-normal">($' + (val).toFixed(2) + ' USD)</span>';
+      
+      return '<tr><td class="text-xs text-muted">' + fF(e.fecha) + '</td><td>' + mB(e.metodo) + '</td><td style="text-align:right" class="font-bold text-danger">' + rowVal + '</td><td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="openGasModal(\'' + e.id + '\')"><i class="fa-solid fa-pen text-xs"></i></button></div></td></tr>';
     }).join('') || '<tr><td colspan="6"><div class="empty-state"><p>Sin resultados</p></div></td></tr>';
   });
 }
@@ -1473,7 +1518,7 @@ window.openGasModal = function (id) {
 };
 
 window.fGasF = function (id) {
-  var g = id ? D.gas.find(function (x) { return x.id === id; }) : null;
+  var g = id ? D.gas.find(function (x) { return x.id === x; }) : null;
   var catOpts = Object.keys(GC_MAP).map(function (k) { return '<option value="' + k + '"' + (g && g.categoria === k ? ' selected' : '') + '>' + k + '</option>'; }).join('');
   var d = new Date();
   var year = d.getFullYear() > 2025 ? 2024 : d.getFullYear(); 
@@ -1522,19 +1567,41 @@ document.addEventListener('submit', function (e) {
 function rPag(c) {
   var now = new Date();
   var mA = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
-  var pM = D.pag.filter(function (x) { return x.fecha && x.fecha.startsWith(mA); }).reduce(function (s, x) { return s + (parseFloat(x.monto) || 0); }, 0);
-  var totalP = D.pag.reduce(function (s, x) { return s + (parseFloat(x.monto) || 0); }, 0);
+  
+  // --- CORRECCIÓN APLICADA AQUÍ ---
+  // Calculamos el total usando la función robusta isUSD
+  var pM = D.pag.filter(function (x) { return x.fecha && x.fecha.startsWith(mA); }).reduce(function (s, x) { 
+      var val = parseFloat(x.monto) || 0;
+      return s + (isUSD(x.metodo) ? val * TDC : val); 
+  }, 0);
+  
+  var totalP = D.pag.reduce(function (s, x) { 
+      var val = parseFloat(x.monto) || 0;
+      return s + (isUSD(x.metodo) ? val * TDC : val); 
+  }, 0);
+  // --------------------------------
+
   var h = '';
   D.pag.forEach(function (p) {
     var d = gD(p.diagnostico_id);
     var v = d ? gV(d.vehiculo_id) : null;
     var cl = v ? gC(v.cliente_id) : null;
+    
+    var val = parseFloat(p.monto) || 0;
+    var u = isUSD(p.metodo);
+    var displayTxt = fM(val);
+    
+    // Agregamos visualmente el equivalente en MXN si es USD
+    if (u) {
+        displayTxt += '<br><span class="text-[10px] text-muted">(' + fM(val * TDC) + ' MXN)</span>';
+    }
+
     h += '<tr>' +
       '<td class="text-xs text-muted">' + fF(p.fecha) + '</td>' +
       '<td><span class="text-xs font-semibold text-fg">#' + String(p.diagnostico_id).slice(-4) + '</span><br><span class="text-[11px] text-muted">' + (v ? esc(v.marca) + ' ' + esc(v.modelo) : '—') + '</span></td>' +
       '<td class="text-xs text-muted">' + (cl ? esc(cl.nombre) + ' ' + esc(cl.apellido) : '—') + '</td>' +
       '<td>' + mB(p.metodo) + '</td>' +
-      '<td style="text-align:right" class="font-bold text-accent">' + fM(p.monto) + '</td>' +
+      '<td style="text-align:right" class="font-bold text-accent">' + displayTxt + '</td>' +
       '<td><div class="flex gap-1 justify-end"><button class="btn-icon" onclick="window.amo(\'Registrar Pago\', window.fPagF(\'' + p.diagnostico_id + '\'), window.sb(\'FrPag\'))"><i class="fa-solid fa-plus text-xs text-accent"></i></button></div></td>' +
       '</tr>';
   });
@@ -1551,6 +1618,7 @@ function rPag(c) {
     (h || '<tr><td colspan="6"><div class="empty-state"><i class="fa-solid fa-coins"></i><p>Sin pagos</p></div></td></tr>') +
     '</tbody></table></div></div></div>';
 }
+
 window.fPagF = function (did) {
   var d = did ? gD(did) : null;
   var v = d ? gV(d.vehiculo_id) : null;
@@ -1599,8 +1667,21 @@ document.addEventListener('submit', function (e) {
 function rRep(c) {
   var now = new Date();
   var mA = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
-  var ing = D.pag.filter(function (x) { return x.fecha && x.fecha.startsWith(mA); }).reduce(function (s, x) { return s + (parseFloat(x.monto) || 0); }, 0);
-  var eg = D.gas.filter(function (x) { return x.fecha && x.fecha.startsWith(mA); }).reduce(function (s, x) { return s + (parseFloat(x.monto) || 0); }, 0);
+  
+  // --- CORRECCIÓN APLICADA AQUÍ ---
+  // Convertimos ingresos USD a MXN usando isUSD
+  var ing = D.pag.filter(function (x) { return x.fecha && x.fecha.startsWith(mA); }).reduce(function (s, x) { 
+      var val = parseFloat(x.monto) || 0;
+      return s + (isUSD(x.metodo) ? val * TDC : val); 
+  }, 0);
+  
+  // Convertimos egresos USD a MXN usando isUSD
+  var eg = D.gas.filter(function (x) { return x.fecha && x.fecha.startsWith(mA); }).reduce(function (s, x) { 
+      var val = parseFloat(x.monto) || 0;
+      return s + (isUSD(x.metodo) ? val * TDC : val); 
+  }, 0);
+  // --------------------------------
+  
   var util = ing - eg;
   var utilColor = util >= 0 ? 'text-accent' : 'text-danger';
   c.innerHTML = '<div class="fade-in">' +
@@ -1610,7 +1691,7 @@ function rRep(c) {
     '<div class="stat-card text-center"><p class="text-xs text-muted uppercase tracking-wider font-semibold mb-2">Egresos</p><p class="text-3xl font-extrabold font-display text-danger">' + fM(eg) + '</p></div>' +
     '<div class="stat-card text-center"><p class="text-xs text-muted uppercase tracking-wider font-semibold mb-2">Utilidad Neta</p><p class="text-3xl font-extrabold font-display ' + utilColor + '">' + fM(util) + '</p></div>' +
     '</div>' +
-    '<div class="bg-card border border-border rounded-2xl p-6"><h3 class="text-sm font-bold font-display text-fg mb-4">Notas</h3><p class="text-xs text-muted">Este reporte considera solo los movimientos del mes actual (' + mA + ').</p></div></div>';
+    '<div class="bg-card border border-border rounded-2xl p-6"><h3 class="text-sm font-bold font-display text-fg mb-4">Notas</h3><p class="text-xs text-muted">Este reporte considera solo los movimientos del mes actual (' + mA + '). Los montos en USD han sido convertidos a Pesos usando el Tipo de Cambio actual (' + TDC.toFixed(2) + ').</p></div></div>';
 }
 
 function bootApp() {
